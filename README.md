@@ -3,7 +3,7 @@
 
 This microservice will execute rancher-compose cli commands using appropriate credentials when stacks are created by pasting the `docker-compose.yml` and `rancher-compose.yml` files in the Rancher UI.
 
-It is an [external event handler](https://github.com/rancherio/cattle/blob/master/docs/examples/handler-bash/simple_handler.sh) in Rancher that listens for events related to the life cycle of ``Stacks`` resources. In this context, ``Stacks`` are called `environment` in the resource API
+It is an [external event handler](https://github.com/rancher/cattle/blob/master/docs/examples/handler-bash/simple_handler.sh) in Rancher that listens for events related to the life cycle of ``Stacks`` resources. In this context, ``Stacks`` are called `environment` in the resource API
 
 The following is the only event this event handler listens on
 

@@ -1,0 +1,4 @@
+redis:
+    scale: 4
+ubuntu:
+    scale: 3

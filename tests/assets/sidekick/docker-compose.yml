@@ -1,0 +1,14 @@
+test:
+  image: ubuntu:14.04.2
+  stdin_open: true
+  tty: true
+  volumes_from:
+  - test-data
+  labels:
+    io.rancher.sidekicks: test-data
+test-data:
+  image: ubuntu:14.04.2
+  stdin_open: true
+  tty: true
+  command:
+  - cat

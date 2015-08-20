@@ -1,0 +1,2 @@
+redis:
+    scale: 2
