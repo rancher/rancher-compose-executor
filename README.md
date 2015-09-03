@@ -1,4 +1,4 @@
-# Rancher Compose Executor
+# Rancher Compose Executor [![Build Status](http://ci.rancher.io/api/badge/github.com/rancher/rancher-compose-executor/status.svg?branch=master)](http://ci.rancher.io/github.com/rancher/rancher-compose-executor)
 --------------------------
 
 This microservice will execute rancher-compose cli commands using appropriate credentials when stacks are created by pasting the `docker-compose.yml` and `rancher-compose.yml` files in the Rancher UI.
