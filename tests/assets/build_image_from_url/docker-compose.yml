@@ -1,0 +1,4 @@
+customservice:
+    build: git@github.com:random/non-existent-service.git
+    ports:
+        -  "500:500"
