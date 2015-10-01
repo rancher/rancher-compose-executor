@@ -23,6 +23,7 @@ type RancherClient struct {
 	AddRemoveLoadBalancerListenerInput       AddRemoveLoadBalancerListenerInputOperations
 	AddRemoveLoadBalancerTargetInput         AddRemoveLoadBalancerTargetInputOperations
 	AddRemoveServiceLinkInput                AddRemoveServiceLinkInputOperations
+	ChangeSecretInput                        ChangeSecretInputOperations
 	SetLabelsInput                           SetLabelsInputOperations
 	ApiKey                                   ApiKeyOperations
 	Cluster                                  ClusterOperations
@@ -33,6 +34,7 @@ type RancherClient struct {
 	InstanceStop                             InstanceStopOperations
 	IpAddressAssociateInput                  IpAddressAssociateInputOperations
 	Project                                  ProjectOperations
+	Password                                 PasswordOperations
 	Registry                                 RegistryOperations
 	RegistryCredential                       RegistryCredentialOperations
 	RemoveLoadBalancerInput                  RemoveLoadBalancerInputOperations
@@ -49,6 +51,7 @@ type RancherClient struct {
 	AddRemoveLoadBalancerServiceLinkInput    AddRemoveLoadBalancerServiceLinkInputOperations
 	SetLoadBalancerServiceLinksInput         SetLoadBalancerServiceLinksInputOperations
 	LoadBalancerServiceLink                  LoadBalancerServiceLinkOperations
+	PullTask                                 PullTaskOperations
 	Account                                  AccountOperations
 	Agent                                    AgentOperations
 	Certificate                              CertificateOperations
@@ -107,6 +110,7 @@ type RancherClient struct {
 	Githubconfig                             GithubconfigOperations
 	Identity                                 IdentityOperations
 	Ldapconfig                               LdapconfigOperations
+	LocalAuthConfig                          LocalAuthConfigOperations
 	StatsAccess                              StatsAccessOperations
 	Amazonec2Config                          Amazonec2ConfigOperations
 	AzureConfig                              AzureConfigOperations
@@ -152,6 +156,7 @@ func constructClient() *RancherClient {
 	client.AddRemoveLoadBalancerListenerInput = newAddRemoveLoadBalancerListenerInputClient(client)
 	client.AddRemoveLoadBalancerTargetInput = newAddRemoveLoadBalancerTargetInputClient(client)
 	client.AddRemoveServiceLinkInput = newAddRemoveServiceLinkInputClient(client)
+	client.ChangeSecretInput = newChangeSecretInputClient(client)
 	client.SetLabelsInput = newSetLabelsInputClient(client)
 	client.ApiKey = newApiKeyClient(client)
 	client.Cluster = newClusterClient(client)
@@ -162,6 +167,7 @@ func constructClient() *RancherClient {
 	client.InstanceStop = newInstanceStopClient(client)
 	client.IpAddressAssociateInput = newIpAddressAssociateInputClient(client)
 	client.Project = newProjectClient(client)
+	client.Password = newPasswordClient(client)
 	client.Registry = newRegistryClient(client)
 	client.RegistryCredential = newRegistryCredentialClient(client)
 	client.RemoveLoadBalancerInput = newRemoveLoadBalancerInputClient(client)
@@ -178,6 +184,7 @@ func constructClient() *RancherClient {
 	client.AddRemoveLoadBalancerServiceLinkInput = newAddRemoveLoadBalancerServiceLinkInputClient(client)
 	client.SetLoadBalancerServiceLinksInput = newSetLoadBalancerServiceLinksInputClient(client)
 	client.LoadBalancerServiceLink = newLoadBalancerServiceLinkClient(client)
+	client.PullTask = newPullTaskClient(client)
 	client.Account = newAccountClient(client)
 	client.Agent = newAgentClient(client)
 	client.Certificate = newCertificateClient(client)
@@ -236,6 +243,7 @@ func constructClient() *RancherClient {
 	client.Githubconfig = newGithubconfigClient(client)
 	client.Identity = newIdentityClient(client)
 	client.Ldapconfig = newLdapconfigClient(client)
+	client.LocalAuthConfig = newLocalAuthConfigClient(client)
 	client.StatsAccess = newStatsAccessClient(client)
 	client.Amazonec2Config = newAmazonec2ConfigClient(client)
 	client.AzureConfig = newAzureConfigClient(client)
