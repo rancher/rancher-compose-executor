@@ -1,6 +1,7 @@
 package rancher
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -16,10 +17,17 @@ import (
 	"github.com/rancher/go-rancher/hostaccess"
 )
 
+type serviceType int
+
 const (
 	LB_IMAGE       = "rancher/load-balancer-service"
 	DNS_IMAGE      = "rancher/dns-service"
 	EXTERNAL_IMAGE = "rancher/external-service"
+
+	rancherType         = serviceType(iota)
+	lbServiceType       = serviceType(iota)
+	dnsServiceType      = serviceType(iota)
+	externalServiceType = serviceType(iota)
 )
 
 type Link struct {
@@ -224,6 +232,7 @@ func (r *RancherService) createExternalService() (*rancherClient.Service, error)
 		ExternalIpAddresses: config.ExternalIps,
 		Hostname:            config.Hostname,
 		EnvironmentId:       r.context.Environment.Id,
+		HealthCheck:         r.getHealthCheck(),
 	})
 
 	if err != nil {
@@ -265,7 +274,8 @@ func (r *RancherService) createDnsService() (*rancherClient.Service, error) {
 func (r *RancherService) createLbService() (*rancherClient.Service, error) {
 	var lbConfig *rancherClient.LoadBalancerConfig
 
-	if config, ok := r.context.RancherConfig[r.name]; ok {
+	config, ok := r.context.RancherConfig[r.name]
+	if ok {
 		lbConfig = config.LoadBalancerConfig
 	}
 
@@ -279,15 +289,19 @@ func (r *RancherService) createLbService() (*rancherClient.Service, error) {
 	launchConfig.Ports = r.serviceConfig.Ports
 	launchConfig.Expose = r.serviceConfig.Expose
 
-	_, err = r.context.Client.LoadBalancerService.Create(&rancherClient.LoadBalancerService{
+	lbServiceOpts := &rancherClient.LoadBalancerService{
 		Name:               r.name,
 		LoadBalancerConfig: lbConfig,
 		LaunchConfig:       launchConfig,
 		Scale:              int64(r.getConfiguredScale()),
 		EnvironmentId:      r.context.Environment.Id,
-	})
+	}
 
-	if err != nil {
+	if err := populateCerts(r.context.Client, lbServiceOpts, &config); err != nil {
+		return nil, err
+	}
+
+	if _, err = r.context.Client.LoadBalancerService.Create(lbServiceOpts); err != nil {
 		return nil, err
 	}
 
@@ -353,18 +367,20 @@ func (r *RancherService) getConfiguredScale() int {
 func (r *RancherService) createService() (*rancherClient.Service, error) {
 	logrus.Infof("Creating service %s", r.name)
 
-	rancherConfig, _ := r.context.RancherConfig[r.name]
 	var service *rancherClient.Service
 	var err error
 
-	if len(rancherConfig.ExternalIps) > 0 || rancherConfig.Hostname != "" {
+	switch r.serviceType() {
+	case externalServiceType:
 		service, err = r.createExternalService()
-	} else if r.serviceConfig.Image == LB_IMAGE {
+	case lbServiceType:
 		service, err = r.createLbService()
-	} else if r.serviceConfig.Image == DNS_IMAGE {
+	case dnsServiceType:
 		service, err = r.createDnsService()
-	} else {
+	case rancherType:
 		service, err = r.createNormalService()
+	default:
+		return nil, fmt.Errorf("Unknown service type for %s", r.name)
 	}
 
 	if err != nil {
@@ -379,6 +395,20 @@ func (r *RancherService) createService() (*rancherClient.Service, error) {
 	return service, err
 }
 
+func (r *RancherService) serviceType() serviceType {
+	rancherConfig, _ := r.context.RancherConfig[r.name]
+
+	if len(rancherConfig.ExternalIps) > 0 || rancherConfig.Hostname != "" {
+		return externalServiceType
+	} else if r.serviceConfig.Image == LB_IMAGE {
+		return lbServiceType
+	} else if r.serviceConfig.Image == DNS_IMAGE {
+		return dnsServiceType
+	}
+
+	return rancherType
+}
+
 func (r *RancherService) setupLinks(service *rancherClient.Service) error {
 	var err error
 	var links []interface{}
@@ -389,7 +419,7 @@ func (r *RancherService) setupLinks(service *rancherClient.Service) error {
 		links, err = r.getServiceLinks()
 	}
 
-	if err == nil && len(links) > 0 {
+	if err == nil {
 		_, err = r.context.Client.Service.ActionSetservicelinks(service, &rancherClient.SetServiceLinksInput{
 			ServiceLinks: links,
 		})
@@ -572,6 +602,21 @@ func (r *RancherService) createLaunchConfig(serviceConfig *project.ServiceConfig
 	return result, err
 }
 
+func (r *RancherService) WaitFor(resource *rancherClient.Resource, output interface{}, transitioning func() string) error {
+	for {
+		if transitioning() != "yes" {
+			return nil
+		}
+
+		time.Sleep(150 * time.Millisecond)
+
+		err := r.context.Client.Reload(resource, output)
+		if err != nil {
+			return err
+		}
+	}
+}
+
 func (r *RancherService) Wait(service *rancherClient.Service) error {
 	for {
 		if service.Transitioning != "yes" {
@@ -681,7 +726,7 @@ func (r *RancherService) Restart() error {
 
 func (r *RancherService) Log() error {
 	service, err := r.findExisting(r.name)
-	if err != nil {
+	if err != nil || service == nil {
 		return err
 	}
 
@@ -770,7 +815,76 @@ func (r *RancherService) Info() (project.InfoSet, error) {
 }
 
 func (r *RancherService) Pull() error {
-	return project.ErrUnsupported
+	config := r.Config()
+	if config.Image == "" || r.serviceType() != rancherType {
+		return nil
+	}
+
+	taskOpts := &rancherClient.PullTask{
+		Mode:   "all",
+		Labels: ToMapInterface(config.Labels.MapParts()),
+		Image:  config.Image,
+	}
+
+	if r.context.PullCached {
+		taskOpts.Mode = "cached"
+	}
+
+	task, err := r.context.Client.PullTask.Create(taskOpts)
+	if err != nil {
+		return err
+	}
+
+	printed := map[string]string{}
+	lastMessage := ""
+	r.WaitFor(&task.Resource, task, func() string {
+		if task.TransitioningMessage != "" && task.TransitioningMessage != "In Progress" && task.TransitioningMessage != lastMessage {
+			printStatus(task.Image, printed, task.Status)
+			lastMessage = task.TransitioningMessage
+		}
+
+		return task.Transitioning
+	})
+
+	if task.Transitioning == "error" {
+		return errors.New(task.TransitioningMessage)
+	}
+
+	if !printStatus(task.Image, printed, task.Status) {
+		return errors.New("Pull failed on one of the hosts")
+	}
+
+	logrus.Infof("Finished pulling %s", task.Image)
+	return nil
+}
+
+func printStatus(image string, printed map[string]string, current map[string]interface{}) bool {
+	good := true
+	for host, objStatus := range current {
+		status, ok := objStatus.(string)
+		if !ok {
+			continue
+		}
+
+		v := printed[host]
+		if status != "Done" {
+			good = false
+		}
+
+		if v == "" {
+			logrus.Infof("Checking for %s on %s...", image, host)
+			v = "start"
+		} else if printed[host] == "start" && status == "Done" {
+			logrus.Infof("Finished %s on %s", image, host)
+			v = "done"
+		} else if printed[host] == "start" && status != "Pulling" && status != v {
+			logrus.Infof("Checking for %s on %s: %s", image, host, status)
+			v = status
+		}
+		printed[host] = v
+	}
+
+	return good
 }
 
 func TrimSplit(str, sep string, count int) []string {
