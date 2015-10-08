@@ -13,6 +13,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/libcompose/project"
+	"github.com/docker/libcompose/utils"
 	rancherClient "github.com/rancher/go-rancher/client"
 )
 
@@ -43,6 +44,7 @@ type RancherConfig struct {
 	HealthCheck        *rancherClient.InstanceHealthCheck `yaml:"health_check,omitempty"`
 	DefaultCert        string                             `yaml:"default_cert,omitempty"`
 	Certs              []string                           `yaml:"certs,omitempty"`
+	Metadata           map[string]interface{}             `yaml:"metadata,omitempty"`
 }
 
 func (c *Context) readRancherConfig() error {
@@ -68,7 +70,18 @@ func (c *Context) readRancherConfig() error {
 		}
 	}
 
-	return yaml.Unmarshal(c.RancherComposeBytes, &c.RancherConfig)
+	return c.unmarshalBytes(c.RancherComposeBytes)
+}
+
+func (c *Context) unmarshalBytes(bytes []byte) error {
+	rawServiceMap := project.RawServiceMap{}
+	if err := yaml.Unmarshal(bytes, &rawServiceMap); err != nil {
+		return err
+	}
+	if err := project.Interpolate(c.EnvironmentLookup, &rawServiceMap); err != nil {
+		return err
+	}
+	return utils.Convert(rawServiceMap, &c.RancherConfig)
 }
 
 func (c *Context) fixUpProjectName() {
@@ -103,6 +116,10 @@ func (c *Context) open() error {
 		return err
 	} else {
 		c.Client = client
+	}
+
+	if envSchema, ok := c.Client.Types["environment"]; !ok || !Contains(envSchema.CollectionMethods, "POST") {
+		return fmt.Errorf("Can not create a stack, check API key [%s] for [%s]", c.AccessKey, c.Url)
 	}
 
 	if err := c.loadEnv(); err != nil {

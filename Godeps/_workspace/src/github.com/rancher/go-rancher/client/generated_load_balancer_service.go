@@ -27,6 +27,8 @@ type LoadBalancerService struct {
 
 	LoadBalancerConfig *LoadBalancerConfig `json:"loadBalancerConfig,omitempty" yaml:"load_balancer_config,omitempty"`
 
+	Metadata map[string]interface{} `json:"metadata,omitempty" yaml:"metadata,omitempty"`
+
 	Name string `json:"name,omitempty" yaml:"name,omitempty"`
 
 	RemoveTime string `json:"removeTime,omitempty" yaml:"remove_time,omitempty"`
@@ -34,6 +36,10 @@ type LoadBalancerService struct {
 	Removed string `json:"removed,omitempty" yaml:"removed,omitempty"`
 
 	Scale int64 `json:"scale,omitempty" yaml:"scale,omitempty"`
+
+	SelectorContainer string `json:"selectorContainer,omitempty" yaml:"selector_container,omitempty"`
+
+	SelectorLink string `json:"selectorLink,omitempty" yaml:"selector_link,omitempty"`
 
 	State string `json:"state,omitempty" yaml:"state,omitempty"`
 
