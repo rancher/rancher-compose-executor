@@ -1,113 +1,83 @@
 package handlers
 
 import (
-	"os"
+	"errors"
+	"fmt"
 
-	log "github.com/Sirupsen/logrus"
-	"github.com/docker/libcompose/cli/logger"
-	"github.com/docker/libcompose/lookup"
+	"github.com/Sirupsen/logrus"
 	"github.com/docker/libcompose/project"
 	"github.com/rancher/go-machine-service/events"
 	"github.com/rancher/go-rancher/client"
+	"github.com/rancher/rancher-compose-executor/lookup"
 	"github.com/rancher/rancher-compose/rancher"
-	"gopkg.in/yaml.v2"
 )
 
-func CreateEnvironment(event *events.Event, apiClient *client.RancherClient) (err error) {
-	log.WithFields(log.Fields{
+func CreateEnvironment(event *events.Event, apiClient *client.RancherClient) error {
+	logger := logrus.WithFields(logrus.Fields{
 		"resourceId": event.ResourceId,
 		"eventId":    event.Id,
-	}).Info("Environment Create Event Received")
+	})
 
-	env, err := getEnvironment(event.ResourceId, apiClient)
+	logger.Info("Stack Create Event Received")
+
+	if err := createEnvironment(logger, event, apiClient); err != nil {
+		logger.Errorf("Stack Create Event Failed: %v", err)
+		publishTransitioningReply(err.Error(), event, apiClient)
+		return err
+	}
+
+	logger.Info("Stack Create Event Done")
+	return nil
+}
+
+func createEnvironment(logger *logrus.Entry, event *events.Event, apiClient *client.RancherClient) error {
+	env, err := apiClient.Environment.ById(event.ResourceId)
 	if err != nil {
-		return handleByIdError(err, event, apiClient)
+		return err
+	}
+
+	if env == nil {
+		return errors.New("Failed to find stack")
 	}
 
 	if env.DockerCompose == "" {
-		reply := newReply(event)
-		return publishReply(reply, apiClient)
+		return emptyReply(event, apiClient)
 	}
 
-	composeUrl := os.Getenv("CATTLE_URL") + "/projects/" + env.AccountId + "/schema"
-	projectName := env.Name
-	composeBytes := []byte(env.DockerCompose)
-	rancherComposeMap := map[string]rancher.RancherConfig{}
-	if env.RancherCompose != "" {
-		err := yaml.Unmarshal([]byte(env.RancherCompose), rancherComposeMap)
-		if err != nil {
-			return handleByIdError(err, event, apiClient)
-		}
-	}
-
-	publishChan := make(chan string, 10)
-	defer func() {
-		close(publishChan)
-	}()
-	go republishTransitioningReply(publishChan, event, apiClient)
-
-	publishChan <- "Starting rancher-compose"
-
-	if err := createEnv(composeUrl, projectName, composeBytes, rancherComposeMap, env); err != nil {
-		return handleByIdError(err, event, apiClient)
-	}
-
+	project, err := constructProject(logger, env, apiClient.Opts.Url, apiClient.Opts.AccessKey, apiClient.Opts.SecretKey)
 	if err != nil {
-		//This remains the most important use of publish Chan - to communicate the reason for error back to cattle
-		publishChan <- err.Error()
-	} else {
-		publishChan <- "Finished creating service"
+		return err
 	}
 
-	reply := newReply(event)
-	return publishReply(reply, apiClient)
+	publishTransitioningReply("Creating stack", event, apiClient)
+
+	if err := project.Create(); err != nil {
+		return err
+	}
+
+	return emptyReply(event, apiClient)
 }
 
-func createEnv(rancherUrl, projectName string, composeBytes []byte, rancherComposeMap map[string]rancher.RancherConfig, env *client.Environment) error {
+func constructProject(logger *logrus.Entry, env *client.Environment, url, accessKey, secretKey string) (*project.Project, error) {
 	context := rancher.Context{
-		Url:           rancherUrl,
-		RancherConfig: rancherComposeMap,
-		Uploader:      nil,
-	}
-	context.ProjectName = projectName
-	context.ComposeBytes = composeBytes
-	context.ConfigLookup = nil
-	context.EnvironmentLookup = &lookup.OsEnvLookup{}
-	context.LoggerFactory = logger.NewColorLoggerFactory()
-	context.ServiceFactory = &rancher.RancherServiceFactory{
-		Context: &context,
+		Context: project.Context{
+			ProjectName:  env.Name,
+			ComposeBytes: []byte(env.DockerCompose),
+			EnvironmentLookup: &lookup.MapEnvLookup{
+				Env: env.Environment,
+			},
+		},
+		Url:                 fmt.Sprintf("%s/projects/%s/schemas", url, env.AccountId),
+		AccessKey:           accessKey,
+		SecretKey:           secretKey,
+		RancherComposeBytes: []byte(env.RancherCompose),
 	}
 
-	p := project.NewProject(&context.Context)
-
-	err := p.Parse()
+	p, err := rancher.NewProject(&context)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Errorf("Error parsing docker-compose.yml")
-		return err
+		return nil, err
 	}
 
-	apiClient, err := client.NewRancherClient(&client.ClientOpts{
-		Url:       rancherUrl,
-		AccessKey: os.Getenv("CATTLE_ACCESS_KEY"),
-		SecretKey: os.Getenv("CATTLE_SECRET_KEY"),
-	})
-
-	context.Client = apiClient
-
-	c := &context
-
-	c.Environment = env
-
-	context.SidekickInfo = rancher.NewSidekickInfo(p)
-
-	err = p.Create([]string{}...)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Error("Error while creating project.")
-		return err
-	}
-	return nil
+	p.AddListener(NewListenLogger(logger, p))
+	return p, p.Parse()
 }
