@@ -23,6 +23,8 @@ type Service struct {
 
 	LaunchConfig LaunchConfig `json:"launchConfig,omitempty" yaml:"launch_config,omitempty"`
 
+	Metadata map[string]interface{} `json:"metadata,omitempty" yaml:"metadata,omitempty"`
+
 	Name string `json:"name,omitempty" yaml:"name,omitempty"`
 
 	RemoveTime string `json:"removeTime,omitempty" yaml:"remove_time,omitempty"`
@@ -32,6 +34,10 @@ type Service struct {
 	Scale int64 `json:"scale,omitempty" yaml:"scale,omitempty"`
 
 	SecondaryLaunchConfigs []interface{} `json:"secondaryLaunchConfigs,omitempty" yaml:"secondary_launch_configs,omitempty"`
+
+	SelectorContainer string `json:"selectorContainer,omitempty" yaml:"selector_container,omitempty"`
+
+	SelectorLink string `json:"selectorLink,omitempty" yaml:"selector_link,omitempty"`
 
 	State string `json:"state,omitempty" yaml:"state,omitempty"`
 

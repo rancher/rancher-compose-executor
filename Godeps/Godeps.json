@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/rancher/rancher-compose-executor",
-	"GoVersion": "go1.4.2",
+	"GoVersion": "go1.4.1",
 	"Deps": [
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
@@ -230,27 +230,33 @@
 		},
 		{
 			"ImportPath": "github.com/docker/libcompose/cli/logger",
-			"Rev": "aad672800904307e96a2c21cad1420f3080e0f35"
+			"Comment": "rancher-compose-v0.4.1",
+			"Rev": "ac41617480a1dead8d9d44489551fddc65348198"
 		},
 		{
 			"ImportPath": "github.com/docker/libcompose/docker",
-			"Rev": "aad672800904307e96a2c21cad1420f3080e0f35"
+			"Comment": "rancher-compose-v0.4.1",
+			"Rev": "ac41617480a1dead8d9d44489551fddc65348198"
 		},
 		{
 			"ImportPath": "github.com/docker/libcompose/logger",
-			"Rev": "aad672800904307e96a2c21cad1420f3080e0f35"
+			"Comment": "rancher-compose-v0.4.1",
+			"Rev": "ac41617480a1dead8d9d44489551fddc65348198"
 		},
 		{
 			"ImportPath": "github.com/docker/libcompose/lookup",
-			"Rev": "aad672800904307e96a2c21cad1420f3080e0f35"
+			"Comment": "rancher-compose-v0.4.1",
+			"Rev": "ac41617480a1dead8d9d44489551fddc65348198"
 		},
 		{
 			"ImportPath": "github.com/docker/libcompose/project",
-			"Rev": "aad672800904307e96a2c21cad1420f3080e0f35"
+			"Comment": "rancher-compose-v0.4.1",
+			"Rev": "ac41617480a1dead8d9d44489551fddc65348198"
 		},
 		{
 			"ImportPath": "github.com/docker/libcompose/utils",
-			"Rev": "aad672800904307e96a2c21cad1420f3080e0f35"
+			"Comment": "rancher-compose-v0.4.1",
+			"Rev": "ac41617480a1dead8d9d44489551fddc65348198"
 		},
 		{
 			"ImportPath": "github.com/docker/libtrust",
@@ -279,28 +285,28 @@
 		},
 		{
 			"ImportPath": "github.com/rancher/go-machine-service/events",
-			"Comment": "v0.16.0-9-gae551ee",
-			"Rev": "ae551ee13ed5d585b48581e8f1f6d6c2d794648e"
+			"Comment": "v0.17.0",
+			"Rev": "ecc762f6877af82d7c6f56cae2a50045951f8af1"
 		},
 		{
 			"ImportPath": "github.com/rancher/go-machine-service/locks",
-			"Comment": "v0.16.0-9-gae551ee",
-			"Rev": "ae551ee13ed5d585b48581e8f1f6d6c2d794648e"
+			"Comment": "v0.17.0",
+			"Rev": "ecc762f6877af82d7c6f56cae2a50045951f8af1"
 		},
 		{
 			"ImportPath": "github.com/rancher/go-rancher/client",
-			"Comment": "v0.1.0-69-g179d8a4",
-			"Rev": "179d8a42a477d2de0a4e7a4f5a99df67d80ed1d8"
+			"Comment": "v0.1.0-77-gf760af3",
+			"Rev": "f760af3a8819155bd59807c0a4511beb6b492323"
 		},
 		{
 			"ImportPath": "github.com/rancher/go-rancher/hostaccess",
-			"Comment": "v0.1.0-69-g179d8a4",
-			"Rev": "179d8a42a477d2de0a4e7a4f5a99df67d80ed1d8"
+			"Comment": "v0.1.0-77-gf760af3",
+			"Rev": "f760af3a8819155bd59807c0a4511beb6b492323"
 		},
 		{
 			"ImportPath": "github.com/rancher/rancher-compose/rancher",
-			"Comment": "v0.2.6-53-g46ebd1a",
-			"Rev": "46ebd1aad5a150aaf73fc04e9f2ce19ca7769c31"
+			"Comment": "v0.4.1-rc1",
+			"Rev": "b83c9aaef77f77eac5b50aa4a6c027fbfbb39dd6"
 		},
 		{
 			"ImportPath": "github.com/samalba/dockerclient",
