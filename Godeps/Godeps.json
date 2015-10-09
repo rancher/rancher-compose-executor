@@ -229,11 +229,6 @@
 			"Rev": "f39987afe8d611407887b3094c03d6ba6a766a67"
 		},
 		{
-			"ImportPath": "github.com/docker/libcompose/cli/logger",
-			"Comment": "rancher-compose-v0.4.1",
-			"Rev": "ac41617480a1dead8d9d44489551fddc65348198"
-		},
-		{
 			"ImportPath": "github.com/docker/libcompose/docker",
 			"Comment": "rancher-compose-v0.4.1",
 			"Rev": "ac41617480a1dead8d9d44489551fddc65348198"
@@ -279,6 +274,10 @@
 			"Rev": "1551221275a7bd42978745a376b2531f791d88f3"
 		},
 		{
+			"ImportPath": "github.com/hashicorp/go-version",
+			"Rev": "2b9865f60ce11e527bd1255ba82036d465570aa3"
+		},
+		{
 			"ImportPath": "github.com/opencontainers/runc/libcontainer/user",
 			"Comment": "v0.0.2-32-gb40c790",
 			"Rev": "b40c7901845dcec5950ecb37cb9de178fc2c0604"
@@ -295,18 +294,23 @@
 		},
 		{
 			"ImportPath": "github.com/rancher/go-rancher/client",
-			"Comment": "v0.1.0-77-gf760af3",
-			"Rev": "f760af3a8819155bd59807c0a4511beb6b492323"
+			"Comment": "v0.1.0-79-gdd18ff4",
+			"Rev": "dd18ff4e7d5af991aadca1eb513fa3ce282d2542"
 		},
 		{
 			"ImportPath": "github.com/rancher/go-rancher/hostaccess",
-			"Comment": "v0.1.0-77-gf760af3",
-			"Rev": "f760af3a8819155bd59807c0a4511beb6b492323"
+			"Comment": "v0.1.0-79-gdd18ff4",
+			"Rev": "dd18ff4e7d5af991aadca1eb513fa3ce282d2542"
 		},
 		{
 			"ImportPath": "github.com/rancher/rancher-compose/rancher",
-			"Comment": "v0.4.1-rc1",
-			"Rev": "b83c9aaef77f77eac5b50aa4a6c027fbfbb39dd6"
+			"Comment": "v0.4.1-rc1-5-g04ea6c9",
+			"Rev": "04ea6c94ac1e1a0d68f3578474f56eae49029ec0"
+		},
+		{
+			"ImportPath": "github.com/rancher/rancher-compose/version",
+			"Comment": "v0.4.1-rc1-5-g04ea6c9",
+			"Rev": "04ea6c94ac1e1a0d68f3578474f56eae49029ec0"
 		},
 		{
 			"ImportPath": "github.com/samalba/dockerclient",
@@ -315,10 +319,6 @@
 		{
 			"ImportPath": "github.com/vaughan0/go-ini",
 			"Rev": "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1"
-		},
-		{
-			"ImportPath": "golang.org/x/crypto/ssh/terminal",
-			"Rev": "4d48e5fa3d62b5e6e71260571bf76c767198ca02"
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
