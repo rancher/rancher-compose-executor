@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"os"
 	"testing"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/rancher/go-rancher/client"
@@ -16,12 +17,41 @@ var apiClient2 *client.RancherClient
 func TestMain(m *testing.M) {
 	var err error
 
-	apiUrl := "http://localhost:8080/v1/projects/1a5/schemas"
+	adminUrl := "http://localhost:8080/v1"
+	apiUrl := adminUrl + "/projects/1a5/schemas"
 	accessKey := ""
 	secretKey := ""
 
-	id := createIfNoAccount("http://localhost:8080/v1/schemas", "rancher-compose-executor-tests")
-	apiUrl2 := "http://localhost:8080/v1/projects/" + id + "/schemas"
+	adminClient, err := client.NewRancherClient(&client.ClientOpts{
+		Url:       adminUrl,
+		AccessKey: accessKey,
+		SecretKey: secretKey,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for i := 0; ; i++ {
+		handlers, err := adminClient.ExternalHandler.List(&client.ListOpts{
+			Filters: map[string]interface{}{
+				"name":  "rancher-compose-executor",
+				"state": "active",
+			},
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+		if len(handlers.Data) > 0 {
+			break
+		}
+		if i > 3 {
+			log.Fatal("Handler is not available")
+		}
+		time.Sleep(1 * time.Second)
+	}
+
+	id := createIfNoAccount(adminUrl, "rancher-compose-executor-tests")
+	apiUrl2 := adminUrl + "/projects/" + id + "/schemas"
 
 	apiClient, err = client.NewRancherClient(&client.ClientOpts{
 		Url:       apiUrl,
