@@ -304,13 +304,13 @@
 		},
 		{
 			"ImportPath": "github.com/rancher/rancher-compose/rancher",
-			"Comment": "v0.4.1-rc1-5-g04ea6c9",
-			"Rev": "04ea6c94ac1e1a0d68f3578474f56eae49029ec0"
+			"Comment": "v0.4.1-2-g4313936",
+			"Rev": "431393645e4eda7a24f3ae61199951afe9c211cd"
 		},
 		{
 			"ImportPath": "github.com/rancher/rancher-compose/version",
-			"Comment": "v0.4.1-rc1-5-g04ea6c9",
-			"Rev": "04ea6c94ac1e1a0d68f3578474f56eae49029ec0"
+			"Comment": "v0.4.1-2-g4313936",
+			"Rev": "431393645e4eda7a24f3ae61199951afe9c211cd"
 		},
 		{
 			"ImportPath": "github.com/samalba/dockerclient",
