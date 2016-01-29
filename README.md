@@ -1,3 +1,6 @@
+# Discontinued.
+This code based has been merged into [rancher-compose](https://github.com/rancher/rancher-compose). You want that instead. Keeping this around just for the history.
+
 # Rancher Compose Executor [![Build Status](http://ci.rancher.io/api/badge/github.com/rancher/rancher-compose-executor/status.svg?branch=master)](http://ci.rancher.io/github.com/rancher/rancher-compose-executor)
 --------------------------
 
