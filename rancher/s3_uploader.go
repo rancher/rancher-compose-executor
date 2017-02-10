@@ -12,7 +12,7 @@ import (
 	"github.com/awslabs/aws-sdk-go/aws"
 	"github.com/awslabs/aws-sdk-go/aws/awserr"
 	"github.com/awslabs/aws-sdk-go/service/s3"
-	"github.com/docker/libcompose/project"
+	"github.com/rancher/rancher-compose/project"
 )
 
 type S3Uploader struct {

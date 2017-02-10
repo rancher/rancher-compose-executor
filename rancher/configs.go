@@ -7,11 +7,11 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/libcompose/config"
-	"github.com/docker/libcompose/docker/service"
 	"github.com/docker/libcompose/utils"
 	"github.com/docker/libcompose/yaml"
 	"github.com/rancher/go-rancher/v2"
+	"github.com/rancher/rancher-compose/config"
+	"github.com/rancher/rancher-compose/docker/service"
 )
 
 func createLaunchConfigs(r *RancherService) (client.LaunchConfig, []client.SecondaryLaunchConfig, error) {

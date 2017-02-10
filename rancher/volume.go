@@ -6,8 +6,8 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/libcompose/config"
-	"github.com/docker/libcompose/project"
+	"github.com/rancher/rancher-compose/config"
+	"github.com/rancher/rancher-compose/project"
 	"github.com/rancher/go-rancher/v2"
 )
 

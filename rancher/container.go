@@ -1,7 +1,7 @@
 package rancher
 
 import (
-	"github.com/docker/libcompose/project"
+	"github.com/rancher/rancher-compose/project"
 	"golang.org/x/net/context"
 )
 

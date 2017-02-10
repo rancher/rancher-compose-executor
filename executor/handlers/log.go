@@ -4,8 +4,8 @@ import (
 	"bytes"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/libcompose/project"
-	"github.com/docker/libcompose/project/events"
+	"github.com/rancher/rancher-compose/project"
+	"github.com/rancher/rancher-compose/project/events"
 )
 
 func NewListenLogger(logger *logrus.Entry, p *project.Project) chan<- events.Event {

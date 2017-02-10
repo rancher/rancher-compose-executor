@@ -1,12 +1,13 @@
 package app
 
 import (
+	"os"
+	"strings"
+
 	"golang.org/x/net/context"
 
-	"github.com/docker/libcompose/cli/app"
-	"github.com/docker/libcompose/cli/command"
+	"github.com/Sirupsen/logrus"
 	"github.com/docker/libcompose/cli/logger"
-	"github.com/docker/libcompose/lookup"
 	rLookup "github.com/rancher/rancher-compose/lookup"
 	"github.com/rancher/rancher-compose/project"
 	"github.com/rancher/rancher-compose/project/options"
@@ -18,13 +19,14 @@ type ProjectFactory struct {
 }
 
 func (p *ProjectFactory) Create(c *cli.Context) (project.APIProject, error) {
-	rancherComposeFile, err := rancher.ResolveRancherCompose(c.GlobalString("file"),
+	/*rancherComposeFile, err := rancher.ResolveRancherCompose(c.GlobalString("file"),
 		c.GlobalString("rancher-file"))
 	if err != nil {
 		return nil, err
-	}
+	}*/
 
-	qLookup, err := rLookup.NewQuestionLookup(rancherComposeFile, &lookup.OsEnvLookup{})
+	// TODO
+	/*qLookup, err := rLookup.NewQuestionLookup(rancherComposeFile, &lookup.OsEnvLookup{})
 	if err != nil {
 		return nil, err
 	}
@@ -32,13 +34,13 @@ func (p *ProjectFactory) Create(c *cli.Context) (project.APIProject, error) {
 	envLookup, err := rLookup.NewFileEnvLookup(c.GlobalString("env-file"), qLookup)
 	if err != nil {
 		return nil, err
-	}
+	}*/
 
 	context := &rancher.Context{
 		Context: project.Context{
-			ResourceLookup:    &rLookup.FileResourceLookup{},
-			EnvironmentLookup: envLookup,
-			LoggerFactory:     logger.NewColorLoggerFactory(),
+			ResourceLookup: &rLookup.FileResourceLookup{},
+			//EnvironmentLookup: envLookup,
+			LoggerFactory: logger.NewColorLoggerFactory(),
 		},
 		RancherComposeFile: c.GlobalString("rancher-file"),
 		Url:                c.GlobalString("url"),
@@ -49,9 +51,9 @@ func (p *ProjectFactory) Create(c *cli.Context) (project.APIProject, error) {
 		Args:               c.Args(),
 		BindingsFile:       c.GlobalString("bindings-file"),
 	}
-	qLookup.Context = context
+	//qLookup.Context = context
 
-	command.Populate(&context.Context, c)
+	Populate(&context.Context, c)
 
 	context.Upgrade = c.Bool("upgrade") || c.Bool("force-upgrade")
 	context.ForceUpgrade = c.Bool("force-upgrade")
@@ -64,11 +66,43 @@ func (p *ProjectFactory) Create(c *cli.Context) (project.APIProject, error) {
 	return rancher.NewProject(context)
 }
 
-func UpCommand(factory app.ProjectFactory) cli.Command {
+func Populate(context *project.Context, c *cli.Context) {
+	// urfave/cli does not distinguish whether the first string in the slice comes from the envvar
+	// or is from a flag. Worse off, it appends the flag values to the envvar value instead of
+	// overriding it. To ensure the multifile envvar case is always handled, the first string
+	// must always be split. It gives a more consistent behavior, then, to split each string in
+	// the slice.
+	for _, v := range c.GlobalStringSlice("file") {
+		context.ComposeFiles = append(context.ComposeFiles, strings.Split(v, string(os.PathListSeparator))...)
+	}
+
+	if len(context.ComposeFiles) == 0 {
+		context.ComposeFiles = []string{"docker-compose.yml"}
+		if _, err := os.Stat("docker-compose.override.yml"); err == nil {
+			context.ComposeFiles = append(context.ComposeFiles, "docker-compose.override.yml")
+		}
+	}
+
+	context.ProjectName = c.GlobalString("project-name")
+}
+
+type ProjectAction func(project project.APIProject, c *cli.Context) error
+
+func WithProject(factory *ProjectFactory, action ProjectAction) func(context *cli.Context) error {
+	return func(context *cli.Context) error {
+		p, err := factory.Create(context)
+		if err != nil {
+			logrus.Fatalf("Failed to read project: %v", err)
+		}
+		return action(p, context)
+	}
+}
+
+func UpCommand(factory *ProjectFactory) cli.Command {
 	return cli.Command{
 		Name:   "up",
 		Usage:  "Bring all services up",
-		Action: app.WithProject(factory, ProjectUp),
+		Action: WithProject(factory, ProjectUp),
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "pull, p",
@@ -108,11 +142,11 @@ func UpCommand(factory app.ProjectFactory) cli.Command {
 	}
 }
 
-func CreateCommand(factory app.ProjectFactory) cli.Command {
+func CreateCommand(factory *ProjectFactory) cli.Command {
 	return cli.Command{
 		Name:   "create",
 		Usage:  "Create all services but do not start",
-		Action: app.WithProject(factory, ProjectCreate),
+		Action: WithProject(factory, ProjectCreate),
 	}
 }
 

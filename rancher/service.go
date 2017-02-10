@@ -11,15 +11,15 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/libcompose/config"
-	"github.com/docker/libcompose/docker/service"
 	"github.com/docker/libcompose/labels"
-	"github.com/docker/libcompose/project"
-	"github.com/docker/libcompose/project/events"
-	"github.com/docker/libcompose/project/options"
 	"github.com/gorilla/websocket"
 	"github.com/rancher/go-rancher/hostaccess"
 	"github.com/rancher/go-rancher/v2"
+	"github.com/rancher/rancher-compose/config"
+	"github.com/rancher/rancher-compose/docker/service"
+	"github.com/rancher/rancher-compose/project"
+	"github.com/rancher/rancher-compose/project/events"
+	"github.com/rancher/rancher-compose/project/options"
 	rUtils "github.com/rancher/rancher-compose/utils"
 )
 

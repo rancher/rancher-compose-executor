@@ -3,7 +3,7 @@ package lookup
 import (
 	"fmt"
 
-	"github.com/docker/libcompose/config"
+	"github.com/rancher/rancher-compose/config"
 )
 
 type MapEnvLookup struct {

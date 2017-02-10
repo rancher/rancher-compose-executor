@@ -11,7 +11,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/libcompose/docker/builder"
-	"github.com/docker/libcompose/project"
+	"github.com/rancher/rancher-compose/project"
 )
 
 type Uploader interface {

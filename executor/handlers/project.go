@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/libcompose/project"
 	"github.com/rancher/go-rancher/v2"
 	"github.com/rancher/rancher-compose/lookup"
+	"github.com/rancher/rancher-compose/project"
 	"github.com/rancher/rancher-compose/rancher"
 )
 
@@ -87,7 +87,8 @@ func createVariableMap(stack *client.Stack, rancherCompose string) (map[string]i
 		variables[k] = v
 	}
 
-	questions, err := lookup.ParseQuestions([]byte(rancherCompose))
+	// TODO
+	/*questions, err := lookup.ParseQuestions([]byte(rancherCompose))
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +97,7 @@ func createVariableMap(stack *client.Stack, rancherCompose string) (map[string]i
 		if _, ok := variables[k]; !ok {
 			variables[k] = question.Default
 		}
-	}
+	}*/
 
 	return variables, nil
 }
