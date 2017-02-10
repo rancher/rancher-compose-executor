@@ -6,7 +6,6 @@ import (
 	"path"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/libcompose/cli/command"
 	rancherApp "github.com/rancher/rancher-compose/app"
 	"github.com/rancher/rancher-compose/executor"
 	"github.com/rancher/rancher-compose/version"
@@ -38,7 +37,21 @@ func cliMain() {
 	app.Author = "Rancher Labs, Inc."
 	app.Email = ""
 	app.Before = beforeApp
-	app.Flags = append(command.CommonFlags(),
+	app.Flags = []cli.Flag{
+		cli.BoolFlag{
+			Name: "verbose,debug",
+		},
+		cli.StringSliceFlag{
+			Name:   "file,f",
+			Usage:  "Specify one or more alternate compose files (default: docker-compose.yml)",
+			Value:  &cli.StringSlice{},
+			EnvVar: "COMPOSE_FILE",
+		},
+		cli.StringFlag{
+			Name:   "project-name,p",
+			Usage:  "Specify an alternate project name (default: directory name)",
+			EnvVar: "COMPOSE_PROJECT_NAME",
+		},
 		cli.StringFlag{
 			Name: "url",
 			Usage: fmt.Sprintf(
@@ -72,18 +85,10 @@ func cliMain() {
 			Name:  "bindings-file,b",
 			Usage: "Specify a file from which to read bindings",
 		},
-	)
+	}
 	app.Commands = []cli.Command{
 		rancherApp.CreateCommand(factory),
 		rancherApp.UpCommand(factory),
-		command.StartCommand(factory),
-		command.LogsCommand(factory),
-		rancherApp.RestartCommand(factory),
-		rancherApp.StopCommand(factory),
-		command.ScaleCommand(factory),
-		command.RmCommand(factory),
-		rancherApp.PullCommand(factory),
-		rancherApp.UpgradeCommand(factory),
 	}
 
 	if err := app.Run(os.Args); err != nil {
