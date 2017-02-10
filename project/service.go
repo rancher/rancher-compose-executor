@@ -14,23 +14,11 @@ import (
 type Service interface {
 	Build(ctx context.Context, buildOptions options.Build) error
 	Create(ctx context.Context, options options.Create) error
-	Delete(ctx context.Context, options options.Delete) error
 	Events(ctx context.Context, messages chan events.ContainerEvent) error
-	Info(ctx context.Context) (InfoSet, error)
 	Log(ctx context.Context, follow bool) error
-	Kill(ctx context.Context, signal string) error
-	Pause(ctx context.Context) error
-	Pull(ctx context.Context) error
-	Restart(ctx context.Context, timeout int) error
-	Run(ctx context.Context, commandParts []string, options options.Run) (int, error)
-	Scale(ctx context.Context, count int, timeout int) error
-	Start(ctx context.Context) error
-	Stop(ctx context.Context, timeout int) error
-	Unpause(ctx context.Context) error
 	Up(ctx context.Context, options options.Up) error
 
 	RemoveImage(ctx context.Context, imageType options.ImageType) error
-	Containers(ctx context.Context) ([]Container, error)
 	DependentServices() []ServiceRelationship
 	Config() *config.ServiceConfig
 	Name() string

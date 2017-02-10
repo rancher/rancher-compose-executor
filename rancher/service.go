@@ -414,25 +414,6 @@ func (r *RancherService) Scale(ctx context.Context, count int, timeout int) erro
 	return r.Wait(service)
 }
 
-func (r *RancherService) Containers(ctx context.Context) ([]project.Container, error) {
-	result := []project.Container{}
-
-	containers, err := r.containers()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, c := range containers {
-		name := c.Name
-		if name == "" {
-			name = c.Uuid
-		}
-		result = append(result, NewContainer(c.Id, name))
-	}
-
-	return result, nil
-}
-
 func (r *RancherService) containers() ([]client.Container, error) {
 	service, err := r.FindExisting(r.name)
 	if err != nil {
