@@ -6,7 +6,6 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/rancher/rancher-compose/config"
-	"github.com/rancher/rancher-compose/project/events"
 	"github.com/rancher/rancher-compose/project/options"
 )
 
@@ -14,11 +13,9 @@ import (
 type Service interface {
 	Build(ctx context.Context, buildOptions options.Build) error
 	Create(ctx context.Context, options options.Create) error
-	Events(ctx context.Context, messages chan events.ContainerEvent) error
 	Log(ctx context.Context, follow bool) error
 	Up(ctx context.Context, options options.Up) error
 
-	RemoveImage(ctx context.Context, imageType options.ImageType) error
 	DependentServices() []ServiceRelationship
 	Config() *config.ServiceConfig
 	Name() string

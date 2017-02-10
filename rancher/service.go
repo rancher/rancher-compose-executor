@@ -18,7 +18,6 @@ import (
 	"github.com/rancher/rancher-compose/config"
 	"github.com/rancher/rancher-compose/docker/service"
 	"github.com/rancher/rancher-compose/project"
-	"github.com/rancher/rancher-compose/project/events"
 	"github.com/rancher/rancher-compose/project/options"
 	rUtils "github.com/rancher/rancher-compose/utils"
 )
@@ -113,7 +112,7 @@ func (r *RancherService) up(create bool) error {
 
 	if service != nil && create && r.shouldUpgrade(service) {
 		if r.context.Pull {
-			if err := r.Pull(context.Background()); err != nil {
+			if err := r.pull(context.Background()); err != nil {
 				return err
 			}
 		}
@@ -159,48 +158,6 @@ func (r *RancherService) up(create bool) error {
 	}
 
 	return err
-}
-
-func (r *RancherService) Stop(ctx context.Context, timeout int) error {
-	service, err := r.FindExisting(r.name)
-
-	if err == nil && service == nil {
-		return nil
-	}
-
-	if err != nil {
-		return err
-	}
-
-	if service.State == "inactive" {
-		return nil
-	}
-
-	service, err = r.context.Client.Service.ActionDeactivate(service)
-	return r.Wait(service)
-}
-
-func (r *RancherService) Delete(ctx context.Context, options options.Delete) error {
-	service, err := r.FindExisting(r.name)
-
-	if err == nil && service == nil {
-		return nil
-	}
-
-	if err != nil {
-		return err
-	}
-
-	if service.Removed != "" || service.State == "removing" || service.State == "removed" {
-		return nil
-	}
-
-	err = r.context.Client.Service.Delete(service)
-	if err != nil {
-		return err
-	}
-
-	return r.Wait(service)
 }
 
 func (r *RancherService) resolveServiceAndStackId(name string) (string, string, error) {
@@ -592,7 +549,7 @@ func (r *RancherService) pullImage(image string, labels map[string]string) error
 	return nil
 }
 
-func (r *RancherService) Pull(ctx context.Context) (err error) {
+func (r *RancherService) pull(ctx context.Context) (err error) {
 	config := r.Config()
 	if config.Image == "" || FindServiceType(r) != RancherType {
 		return
@@ -629,30 +586,6 @@ func (r *RancherService) Pull(ctx context.Context) (err error) {
 
 	wg.Wait()
 	return
-}
-
-func (r *RancherService) Pause(ctx context.Context) error {
-	return project.ErrUnsupported
-}
-
-func (r *RancherService) Unpause(ctx context.Context) error {
-	return project.ErrUnsupported
-}
-
-func (r *RancherService) Down() error {
-	return project.ErrUnsupported
-}
-
-func (r *RancherService) Events(ctx context.Context, messages chan events.ContainerEvent) error {
-	return project.ErrUnsupported
-}
-
-func (r *RancherService) Run(ctx context.Context, commandParts []string, options options.Run) (int, error) {
-	return 0, project.ErrUnsupported
-}
-
-func (r *RancherService) RemoveImage(ctx context.Context, imageType options.ImageType) error {
-	return project.ErrUnsupported
 }
 
 func appendHash(service *RancherService, existingLabels map[string]interface{}) (map[string]interface{}, error) {

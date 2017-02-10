@@ -4,7 +4,6 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/rancher/rancher-compose/config"
-	"github.com/rancher/rancher-compose/project/events"
 	"github.com/rancher/rancher-compose/project/options"
 )
 
@@ -33,16 +32,6 @@ func (e *EmptyService) Up(ctx context.Context, options options.Up) error {
 
 // Log implements Service.Log but does nothing.
 func (e *EmptyService) Log(ctx context.Context, follow bool) error {
-	return nil
-}
-
-// RemoveImage implements Service.RemoveImage but does nothing.
-func (e *EmptyService) RemoveImage(ctx context.Context, imageType options.ImageType) error {
-	return nil
-}
-
-// Events implements Service.Events but does nothing.
-func (e *EmptyService) Events(ctx context.Context, events chan events.ContainerEvent) error {
 	return nil
 }
 
