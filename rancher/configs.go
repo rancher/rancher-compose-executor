@@ -11,7 +11,7 @@ import (
 	"github.com/docker/libcompose/yaml"
 	"github.com/rancher/go-rancher/v2"
 	"github.com/rancher/rancher-compose/config"
-	"github.com/rancher/rancher-compose/docker/service"
+	"github.com/rancher/rancher-compose/convert"
 )
 
 func createLaunchConfigs(r *RancherService) (client.LaunchConfig, []client.SecondaryLaunchConfig, error) {
@@ -77,7 +77,7 @@ func createLaunchConfig(r *RancherService, name string, serviceConfig *config.Se
 		serviceConfig.Labels = newLabels
 	}
 
-	config, hostConfig, err := service.Convert(serviceConfig, r.context.Context)
+	config, hostConfig, err := convert.Convert(serviceConfig, r.context.Context)
 	if err != nil {
 		return result, err
 	}

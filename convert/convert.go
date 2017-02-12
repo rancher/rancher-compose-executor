@@ -1,4 +1,4 @@
-package service
+package convert
 
 import (
 	"fmt"
@@ -12,10 +12,10 @@ import (
 	"github.com/docker/docker/runconfig/opts"
 	"github.com/docker/go-connections/nat"
 	"github.com/docker/go-units"
-	"github.com/rancher/rancher-compose/config"
-	"github.com/rancher/rancher-compose/project"
 	"github.com/docker/libcompose/utils"
 	"github.com/docker/libcompose/yaml"
+	"github.com/rancher/rancher-compose/config"
+	"github.com/rancher/rancher-compose/project"
 )
 
 // ConfigWrapper wraps Config, HostConfig and NetworkingConfig for a container.
