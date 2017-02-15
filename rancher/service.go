@@ -506,10 +506,6 @@ func (r *RancherService) Kill(ctx context.Context, signal string) error {
 	return project.ErrUnsupported
 }
 
-func (r *RancherService) Info(ctx context.Context) (project.InfoSet, error) {
-	return project.InfoSet{}, project.ErrUnsupported
-}
-
 func (r *RancherService) pullImage(image string, labels map[string]string) error {
 	taskOpts := &client.PullTask{
 		Mode:   "all",
