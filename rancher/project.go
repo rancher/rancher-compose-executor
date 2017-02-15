@@ -16,7 +16,7 @@ func NewProject(context *Context) (*project.Project, error) {
 		Context: context,
 	}
 
-	p := project.NewProject(&context.Context, nil, &config.ParseOptions{
+	p := project.NewProject(&context.Context, &config.ParseOptions{
 		Interpolate: true,
 		Validate:    true,
 		Preprocess:  preprocess.PreprocessServiceMap,

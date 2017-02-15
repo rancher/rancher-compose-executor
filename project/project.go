@@ -33,7 +33,6 @@ type Project struct {
 	ReloadCallback func() error
 	ParseOptions   *config.ParseOptions
 
-	runtime       RuntimeProject
 	volumes       Volumes
 	configVersion string
 	context       *Context
@@ -44,10 +43,9 @@ type Project struct {
 }
 
 // NewProject creates a new project with the specified context.
-func NewProject(context *Context, runtime RuntimeProject, parseOptions *config.ParseOptions) *Project {
+func NewProject(context *Context, parseOptions *config.ParseOptions) *Project {
 	p := &Project{
 		context:        context,
-		runtime:        runtime,
 		ParseOptions:   parseOptions,
 		ServiceConfigs: config.NewServiceConfigs(),
 		VolumeConfigs:  make(map[string]*config.VolumeConfig),

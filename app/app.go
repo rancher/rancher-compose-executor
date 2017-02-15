@@ -18,7 +18,7 @@ import (
 type ProjectFactory struct {
 }
 
-func (p *ProjectFactory) Create(c *cli.Context) (project.APIProject, error) {
+func (p *ProjectFactory) Create(c *cli.Context) (*project.Project, error) {
 	/*rancherComposeFile, err := rancher.ResolveRancherCompose(c.GlobalString("file"),
 		c.GlobalString("rancher-file"))
 	if err != nil {
@@ -85,7 +85,7 @@ func Populate(context *project.Context, c *cli.Context) {
 	context.ProjectName = c.GlobalString("project-name")
 }
 
-type ProjectAction func(project project.APIProject, c *cli.Context) error
+type ProjectAction func(project *project.Project, c *cli.Context) error
 
 func WithProject(factory *ProjectFactory, action ProjectAction) func(context *cli.Context) error {
 	return func(context *cli.Context) error {
@@ -149,7 +149,7 @@ func CreateCommand(factory *ProjectFactory) cli.Command {
 	}
 }
 
-func ProjectCreate(p project.APIProject, c *cli.Context) error {
+func ProjectCreate(p *project.Project, c *cli.Context) error {
 	if err := p.Create(context.Background(), options.Create{}, c.Args()...); err != nil {
 		return err
 	}
@@ -162,7 +162,7 @@ func ProjectCreate(p project.APIProject, c *cli.Context) error {
 	return nil
 }
 
-func ProjectUp(p project.APIProject, c *cli.Context) error {
+func ProjectUp(p *project.Project, c *cli.Context) error {
 	if err := p.Create(context.Background(), options.Create{}, c.Args()...); err != nil {
 		return err
 	}
