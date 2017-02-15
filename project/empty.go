@@ -49,20 +49,3 @@ func (e *EmptyService) Config() *config.ServiceConfig {
 func (e *EmptyService) Name() string {
 	return ""
 }
-
-// this ensures EmptyNetworks implements Networks
-var _ Networks = (*EmptyNetworks)(nil)
-
-// EmptyNetworks is a struct that implements Networks but does nothing.
-type EmptyNetworks struct {
-}
-
-// Initialize implements Networks.Initialize but does nothing.
-func (e *EmptyNetworks) Initialize(ctx context.Context) error {
-	return nil
-}
-
-// Remove implements Networks.Remove but does nothing.
-func (e *EmptyNetworks) Remove(ctx context.Context) error {
-	return nil
-}

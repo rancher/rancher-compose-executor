@@ -10,12 +10,11 @@ import (
 	"golang.org/x/net/context"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/rancher/rancher-compose/config"
 	"github.com/docker/libcompose/logger"
+	"github.com/docker/libcompose/utils"
+	"github.com/rancher/rancher-compose/config"
 	"github.com/rancher/rancher-compose/lookup"
 	"github.com/rancher/rancher-compose/project/events"
-	"github.com/docker/libcompose/utils"
-	"github.com/docker/libcompose/yaml"
 )
 
 // ComposeVersion is name of docker-compose.yml file syntax supported version
@@ -35,7 +34,6 @@ type Project struct {
 	ParseOptions   *config.ParseOptions
 
 	runtime       RuntimeProject
-	networks      Networks
 	volumes       Volumes
 	configVersion string
 	context       *Context
@@ -230,19 +228,6 @@ func (p *Project) load(file string, bytes []byte) error {
 		}
 	}
 
-	// Update network configuration a little bit
-	p.handleNetworkConfig()
-	//p.handleVolumeConfig()
-
-	if p.context.NetworksFactory != nil {
-		networks, err := p.context.NetworksFactory.Create(p.Name, p.NetworkConfigs, p.ServiceConfigs, p.isNetworkEnabled())
-		if err != nil {
-			return err
-		}
-
-		p.networks = networks
-	}
-
 	if p.context.VolumesFactory != nil {
 		volumes, err := p.context.VolumesFactory.Create(p.Name, p.VolumeConfigs, p.ServiceConfigs, p.isVolumeEnabled())
 		if err != nil {
@@ -255,46 +240,7 @@ func (p *Project) load(file string, bytes []byte) error {
 	return nil
 }
 
-func (p *Project) handleNetworkConfig() {
-	if p.isNetworkEnabled() {
-		for _, serviceName := range p.ServiceConfigs.Keys() {
-			serviceConfig, _ := p.ServiceConfigs.Get(serviceName)
-			if serviceConfig.NetworkMode != "" {
-				continue
-			}
-			if serviceConfig.Networks == nil || len(serviceConfig.Networks.Networks) == 0 {
-				// Add default as network
-				serviceConfig.Networks = &yaml.Networks{
-					Networks: []*yaml.Network{
-						{
-							Name: "default",
-						},
-					},
-				}
-			}
-			// Consolidate the name of the network
-			// FIXME(vdemeester) probably shouldn't be there, maybe move that to interface/factory
-			for _, network := range serviceConfig.Networks.Networks {
-				if net, ok := p.NetworkConfigs[network.Name]; ok {
-					if net.External.External {
-						network.RealName = network.Name
-						if net.External.Name != "" {
-							network.RealName = net.External.Name
-						}
-					} else {
-						network.RealName = p.Name + "_" + network.Name
-					}
-				}
-				// Ignoring if we don't find the network, it will be catched later
-			}
-		}
-	}
-}
-
-func (p *Project) isNetworkEnabled() bool {
-	return p.configVersion == "2"
-}
-
+// TODO: where is this used?
 func (p *Project) handleVolumeConfig() {
 	if p.isVolumeEnabled() {
 		for _, serviceName := range p.ServiceConfigs.Keys() {
@@ -330,14 +276,7 @@ func (p *Project) isVolumeEnabled() bool {
 	return p.configVersion == "2"
 }
 
-// initialize sets up required element for project before any action (on project and service).
-// This means it's not needed to be called on Config for example.
 func (p *Project) initialize(ctx context.Context) error {
-	if p.networks != nil {
-		if err := p.networks.Initialize(ctx); err != nil {
-			return err
-		}
-	}
 	if p.volumes != nil {
 		if err := p.volumes.Initialize(ctx); err != nil {
 			return err

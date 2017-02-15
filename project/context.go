@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/rancher/rancher-compose/config"
 	"github.com/docker/libcompose/logger"
+	"github.com/rancher/rancher-compose/config"
 )
 
 var projectRegexp = regexp.MustCompile("[^a-zA-Z0-9_.-]")
@@ -24,7 +24,6 @@ type Context struct {
 	ProjectName         string
 	isOpen              bool
 	ServiceFactory      ServiceFactory
-	NetworksFactory     NetworksFactory
 	VolumesFactory      VolumesFactory
 	EnvironmentLookup   config.EnvironmentLookup
 	ResourceLookup      config.ResourceLookup
