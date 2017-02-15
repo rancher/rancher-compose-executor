@@ -21,7 +21,7 @@ func main() {
 		panic(err)
 	}
 
-	inlinedFile, err := os.Create("vendor/github.com/docker/libcompose/config/schema.go")
+	inlinedFile, err := os.Create("config/schema.go")
 	if err != nil {
 		panic(err)
 	}
