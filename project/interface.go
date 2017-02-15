@@ -14,7 +14,6 @@ type APIProject interface {
 	events.Emitter
 
 	Build(ctx context.Context, options options.Build, sevice ...string) error
-	Config() (string, error)
 	Create(ctx context.Context, options options.Create, services ...string) error
 	Log(ctx context.Context, follow bool, services ...string) error
 	Up(ctx context.Context, options options.Up, services ...string) error
