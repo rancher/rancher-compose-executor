@@ -49,7 +49,6 @@ func (p *ProjectFactory) Create(c *cli.Context) (project.APIProject, error) {
 		PullCached:         c.Bool("cached"),
 		Uploader:           &rancher.S3Uploader{},
 		Args:               c.Args(),
-		BindingsFile:       c.GlobalString("bindings-file"),
 	}
 	//qLookup.Context = context
 

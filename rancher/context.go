@@ -10,14 +10,14 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/rancher/rancher-compose/config"
-	"github.com/rancher/rancher-compose/project"
 	"github.com/docker/libcompose/utils"
 	composeYaml "github.com/docker/libcompose/yaml"
 	"github.com/fatih/structs"
 	legacyClient "github.com/rancher/go-rancher/client"
 	"github.com/rancher/go-rancher/v2"
+	"github.com/rancher/rancher-compose/config"
 	"github.com/rancher/rancher-compose/preprocess"
+	"github.com/rancher/rancher-compose/project"
 	rUtils "github.com/rancher/rancher-compose/utils"
 	rVersion "github.com/rancher/rancher-compose/version"
 
@@ -32,9 +32,6 @@ type Context struct {
 	RancherConfig       map[string]RancherConfig
 	RancherComposeFile  string
 	RancherComposeBytes []byte
-	BindingsFile        string
-	Binding             *client.Binding
-	BindingsBytes       []byte
 	Url                 string
 	AccessKey           string
 	SecretKey           string
@@ -125,15 +122,6 @@ func getRancherConfigObjects() map[string]bool {
 		}
 	}
 	return fields
-}
-
-type BindingProperty struct {
-	Services map[string]Service `json:"services"`
-}
-
-type Service struct {
-	Labels map[string]interface{} `json:"labels"`
-	Ports  []interface{}          `json:"ports"`
 }
 
 func ResolveRancherCompose(composeFile, rancherComposeFile string) (string, error) {
