@@ -9,6 +9,7 @@ import (
 // EnvironmentLookup defines methods to provides environment variable loading.
 type EnvironmentLookup interface {
 	Lookup(key string, config *ServiceConfig) []string
+	Variables() map[string]string
 }
 
 // ResourceLookup defines methods to provides file loading.

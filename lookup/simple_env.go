@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/docker/libcompose/yaml"
 	"github.com/rancher/rancher-compose/config"
 )
 
@@ -21,4 +22,9 @@ func (o *OsEnvLookup) Lookup(key string, config *config.ServiceConfig) []string 
 		return []string{}
 	}
 	return []string{fmt.Sprintf("%s=%s", key, ret)}
+}
+
+func (o *OsEnvLookup) Variables() map[string]string {
+	environ := yaml.MaporEqualSlice(os.Environ())
+	return environ.ToMap()
 }

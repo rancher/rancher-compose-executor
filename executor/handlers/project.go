@@ -85,8 +85,7 @@ func createVariableMap(stack *client.Stack, rancherCompose string) (map[string]i
 		variables[k] = v
 	}
 
-	// TODO
-	/*questions, err := lookup.ParseQuestions([]byte(rancherCompose))
+	questions, err := lookup.ParseQuestions([]byte(rancherCompose))
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +94,7 @@ func createVariableMap(stack *client.Stack, rancherCompose string) (map[string]i
 		if _, ok := variables[k]; !ok {
 			variables[k] = question.Default
 		}
-	}*/
+	}
 
 	return variables, nil
 }

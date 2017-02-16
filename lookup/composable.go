@@ -2,6 +2,7 @@ package lookup
 
 import (
 	"github.com/rancher/rancher-compose/config"
+	"github.com/rancher/rancher-compose/utils"
 )
 
 // ComposableEnvLookup is a structure that implements the project.EnvironmentLookup interface.
@@ -22,4 +23,12 @@ func (l *ComposableEnvLookup) Lookup(key string, config *config.ServiceConfig) [
 		}
 	}
 	return result
+}
+
+func (l *ComposableEnvLookup) Variables() map[string]string {
+	variables := map[string]string{}
+	for _, lookup := range l.Lookups {
+		variables = utils.MapUnion(variables, lookup.Variables())
+	}
+	return variables
 }

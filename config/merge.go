@@ -5,7 +5,9 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"text/template"
 
+	"github.com/Masterminds/sprig"
 	"github.com/docker/docker/pkg/urlutil"
 	"github.com/docker/libcompose/utils"
 	composeYaml "github.com/docker/libcompose/yaml"
@@ -23,16 +25,16 @@ var (
 	}
 )
 
-// CreateConfig unmarshals bytes to config and creates config based on version
-func CreateConfig(bytes []byte) (*Config, error) {
+// CreateConfig unmarshals contents to config and creates config based on version
+func CreateConfig(contents []byte) (*Config, error) {
 	var config Config
-	if err := yaml.Unmarshal(bytes, &config); err != nil {
+	if err := yaml.Unmarshal(contents, &config); err != nil {
 		return nil, err
 	}
 
 	if config.Version != "2" {
 		var baseRawServices RawServiceMap
-		if err := yaml.Unmarshal(bytes, &baseRawServices); err != nil {
+		if err := yaml.Unmarshal(contents, &baseRawServices); err != nil {
 			return nil, err
 		}
 		config.Services = baseRawServices
@@ -49,12 +51,21 @@ func CreateConfig(bytes []byte) (*Config, error) {
 }
 
 // Merge merges a compose file into an existing set of service configs
-func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup, resourceLookup ResourceLookup, file string, bytes []byte, options *ParseOptions) (string, map[string]*ServiceConfig, map[string]*VolumeConfig, map[string]*NetworkConfig, error) {
+func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup, resourceLookup ResourceLookup, file string, contents []byte, options *ParseOptions) (string, map[string]*ServiceConfig, map[string]*VolumeConfig, map[string]*NetworkConfig, error) {
 	if options == nil {
 		options = &defaultParseOptions
 	}
 
-	config, err := CreateConfig(bytes)
+	t, err := template.New("config").Funcs(sprig.TxtFuncMap()).Parse(string(contents))
+	if err != nil {
+		return "", nil, nil, nil, err
+	}
+
+	buf := bytes.Buffer{}
+	t.Execute(&buf, environmentLookup.Variables())
+	contents = buf.Bytes()
+
+	config, err := CreateConfig(contents)
 	if err != nil {
 		return "", nil, nil, nil, err
 	}

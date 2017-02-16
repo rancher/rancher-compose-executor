@@ -8,6 +8,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/rancher/rancher-compose/config"
+	"github.com/rancher/rancher-compose/utils"
 )
 
 type FileEnvLookup struct {
@@ -56,4 +57,8 @@ func (f *FileEnvLookup) Lookup(key string, config *config.ServiceConfig) []strin
 	}
 
 	return f.parent.Lookup(key, config)
+}
+
+func (f *FileEnvLookup) Variables() map[string]string {
+	return utils.MapUnion(f.variables, f.parent.Variables())
 }

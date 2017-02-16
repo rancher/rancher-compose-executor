@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/docker/docker/runconfig/opts"
+	"github.com/docker/libcompose/yaml"
 	"github.com/rancher/rancher-compose/config"
 )
 
@@ -28,4 +29,13 @@ func (l *EnvfileLookup) Lookup(key string, config *config.ServiceConfig) []strin
 		}
 	}
 	return []string{}
+}
+
+func (l *EnvfileLookup) Variables() map[string]string {
+	envs, err := opts.ParseEnvFile(l.Path)
+	if err != nil {
+		return map[string]string{}
+	}
+	environ := yaml.MaporEqualSlice(envs)
+	return environ.ToMap()
 }

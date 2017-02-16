@@ -8,7 +8,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/libcompose/cli/logger"
-	rLookup "github.com/rancher/rancher-compose/lookup"
+	"github.com/rancher/rancher-compose/lookup"
 	"github.com/rancher/rancher-compose/project"
 	"github.com/rancher/rancher-compose/project/options"
 	"github.com/rancher/rancher-compose/rancher"
@@ -19,28 +19,27 @@ type ProjectFactory struct {
 }
 
 func (p *ProjectFactory) Create(c *cli.Context) (*project.Project, error) {
-	/*rancherComposeFile, err := rancher.ResolveRancherCompose(c.GlobalString("file"),
+	rancherComposeFile, err := rancher.ResolveRancherCompose(c.GlobalString("file"),
 		c.GlobalString("rancher-file"))
-	if err != nil {
-		return nil, err
-	}*/
-
-	// TODO
-	/*qLookup, err := rLookup.NewQuestionLookup(rancherComposeFile, &lookup.OsEnvLookup{})
 	if err != nil {
 		return nil, err
 	}
 
-	envLookup, err := rLookup.NewFileEnvLookup(c.GlobalString("env-file"), qLookup)
+	qLookup, err := lookup.NewQuestionLookup(rancherComposeFile, &lookup.OsEnvLookup{})
 	if err != nil {
 		return nil, err
-	}*/
+	}
+
+	envLookup, err := lookup.NewFileEnvLookup(c.GlobalString("env-file"), qLookup)
+	if err != nil {
+		return nil, err
+	}
 
 	context := &rancher.Context{
 		Context: project.Context{
-			ResourceLookup: &rLookup.FileResourceLookup{},
-			//EnvironmentLookup: envLookup,
-			LoggerFactory: logger.NewColorLoggerFactory(),
+			ResourceLookup:    &lookup.FileResourceLookup{},
+			EnvironmentLookup: envLookup,
+			LoggerFactory:     logger.NewColorLoggerFactory(),
 		},
 		RancherComposeFile: c.GlobalString("rancher-file"),
 		Url:                c.GlobalString("url"),
@@ -50,6 +49,7 @@ func (p *ProjectFactory) Create(c *cli.Context) (*project.Project, error) {
 		Uploader:           &rancher.S3Uploader{},
 		Args:               c.Args(),
 	}
+	// TODO
 	//qLookup.Context = context
 
 	Populate(&context.Context, c)

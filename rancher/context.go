@@ -1,6 +1,7 @@
 package rancher
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -8,7 +9,9 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"text/template"
 
+	"github.com/Masterminds/sprig"
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/libcompose/utils"
 	composeYaml "github.com/docker/libcompose/yaml"
@@ -161,7 +164,17 @@ func (c *Context) readRancherConfig() error {
 	return c.unmarshalBytes(c.ComposeBytes[0], c.RancherComposeBytes)
 }
 
-func (c *Context) unmarshalBytes(composeBytes, bytes []byte) error {
+// TODO: try to not duplicate this logic between here and libcompose
+func (c *Context) unmarshalBytes(composeBytes, rancherComposeBytes []byte) error {
+	t, err := template.New("config").Funcs(sprig.TxtFuncMap()).Parse(string(composeBytes))
+	if err != nil {
+		return err
+	}
+
+	buf := bytes.Buffer{}
+	t.Execute(&buf, c.EnvironmentLookup.Variables())
+	composeBytes = buf.Bytes()
+
 	rawServiceMap := config.RawServiceMap{}
 	if composeBytes != nil {
 		config, err := config.CreateConfig(composeBytes)
@@ -173,8 +186,8 @@ func (c *Context) unmarshalBytes(composeBytes, bytes []byte) error {
 			delete(rawServiceMap[key], "hostname")
 		}
 	}
-	if bytes != nil && len(bytes) > 0 {
-		config, err := config.CreateConfig(bytes)
+	if rancherComposeBytes != nil && len(rancherComposeBytes) > 0 {
+		config, err := config.CreateConfig(rancherComposeBytes)
 		if err != nil {
 			return err
 		}
