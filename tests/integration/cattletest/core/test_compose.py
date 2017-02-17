@@ -352,78 +352,6 @@ def test_circular_sidekick(client, compose):
     assert len(secondary) == 1
 
 
-def test_delete(client, compose):
-    template = '''
-    web:
-        image: nginx
-    '''
-
-    project_name = create_project(compose, input=template)
-    project = find_one(client.list_stack, name=project_name)
-    service = find_one(project.services)
-
-    assert service.state == 'inactive'
-
-    compose.check_call(template, '--verbose', '-f', '-', '-p', project_name,
-                       'up', '-d')
-
-    service = client.wait_success(service)
-
-    assert service.state == 'active'
-
-    compose.check_call(template, '--verbose', '-f', '-', '-p', project_name,
-                       'rm', '--force')
-
-    service = client.wait_success(service)
-
-    assert service.state == 'removed'
-
-
-def test_bindings(client, compose):
-    template = '''
-    prometheus:
-      image: busybox
-      command: cat
-      labels:
-        labels_prom: value_prom
-    '''
-
-    project_name = random_str()
-
-    compose.check_call(template, '--bindings-file', 'assets/bindings.json',
-                       '--verbose', '-p', project_name, '-f', '-', 'up', '-d')
-
-    project = find_one(client.list_stack, name=project_name)
-    service = find_one(project.services)
-
-    service = client.wait_success(service)
-
-    dict_label = {"labels_prom_binding": "value_prom_binding"}
-    ports_array = ["8081"]
-    assert dict_label.viewitems() <= service.launchConfig.labels.viewitems()
-    assert service.launchConfig.ports[0].find(ports_array[0]) != -1
-
-
-def test_delete_while_stopped(client, compose):
-    template = '''
-    web:
-        image: nginx
-    '''
-
-    project_name = create_project(compose, input=template)
-    project = find_one(client.list_stack, name=project_name)
-    service = find_one(project.services)
-
-    assert service.state == 'inactive'
-
-    compose.check_call(template, '--verbose', '-f', '-', '-p', project_name,
-                       'rm', 'web')
-
-    service = client.wait_success(service)
-
-    assert service.state == 'removed'
-
-
 def test_network_bridge(client, compose):
     template = '''
     web:
@@ -2088,26 +2016,6 @@ foo3:
     compose.check_call(template2, '-p', project_name, '-f', '-', 'create')
     foo2 = find_one(foo.consumedservices)
     assert foo2.name == 'foo2'
-
-
-def test_pull_sidekick(client, compose):
-    template = '''
-foo:
-    labels:
-        io.rancher.sidekicks: foo2
-    image: nginx
-foo2:
-    image: tianon/true
-'''
-
-    project_name = random_str()
-    out, err = compose.check_retcode(template, 0, '-p', project_name, '-f',
-                                     '-', 'pull', stdout=subprocess.PIPE)
-    project = find_one(client.list_stack, name=project_name)
-    assert len(project.services()) == 0
-
-    assert 'nginx' in out
-    assert 'tianon/true' in out
 
 
 def test_retain_ip(client, compose):
