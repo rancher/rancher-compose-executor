@@ -5,12 +5,11 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
-	"text/template"
 
-	"github.com/Masterminds/sprig"
 	"github.com/docker/docker/pkg/urlutil"
 	"github.com/docker/libcompose/utils"
 	composeYaml "github.com/docker/libcompose/yaml"
+	"github.com/rancher/rancher-compose/template"
 	"gopkg.in/yaml.v2"
 )
 
@@ -56,14 +55,11 @@ func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup
 		options = &defaultParseOptions
 	}
 
-	t, err := template.New("config").Funcs(sprig.TxtFuncMap()).Parse(string(contents))
+	var err error
+	contents, err = template.Apply(contents, environmentLookup.Variables())
 	if err != nil {
 		return "", nil, nil, nil, err
 	}
-
-	buf := bytes.Buffer{}
-	t.Execute(&buf, environmentLookup.Variables())
-	contents = buf.Bytes()
 
 	config, err := CreateConfig(contents)
 	if err != nil {

@@ -256,5 +256,60 @@ one:
         assert s.launchConfig.labels.d == 'e'
 
 
+def test_stack_templating(client):
+    name = 'project-' + random_str()
+    rancher_compose = '''
+.catalog:
+  uuid: foo
+  questions:
+  - variable: "image1"
+    type: "string"
+    default: "nginx"
+  - variable: "image2"
+    type: "string"
+    default: "nginx"
+  - variable: "b1"
+    type: "boolean"
+  - variable: "b2"
+    type: "boolean"
+'''
+    template = '''
+one:
+  image: {{ .Values.image1 }}
+  labels:
+    {{- if eq .Values.b1 "true" }}
+    label: "true"
+    {{- else }}
+    label: "false"
+    {{- end }}
+two:
+  image: {{ .Values.image2 }}
+  labels:
+    {{- if eq .Values.b2 "true" }}
+    label: "true"
+    {{- else }}
+    label: "false"
+    {{- end }}
+'''
+
+    environment = {'image2': 'busybox', 'b1': 'true', 'b2': 'false'}
+    env = client.create_stack(name=name, dockerCompose=template,
+                              environment=environment,
+                              rancherCompose=rancher_compose)
+    env = client.wait_success(env)
+    env = client.wait_success(env.activateservices())
+    assert env.state == 'active'
+    assert env.environment == environment
+    for s in env.services():
+        s = client.wait_success(s)
+        assert s.state == 'active'
+        if s.name == 'one':
+            assert s.launchConfig.imageUuid == 'docker:nginx'
+            assert s.launchConfig.labels.label == 'true'
+        if s.name == 'two':
+            assert s.launchConfig.imageUuid == 'docker:busybox'
+            assert s.launchConfig.labels.label == 'false'
+
+
 def _base():
     return path.dirname(__file__)

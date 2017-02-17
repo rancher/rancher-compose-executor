@@ -1,7 +1,6 @@
 package rancher
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -9,9 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"text/template"
 
-	"github.com/Masterminds/sprig"
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/libcompose/utils"
 	composeYaml "github.com/docker/libcompose/yaml"
@@ -21,6 +18,7 @@ import (
 	"github.com/rancher/rancher-compose/config"
 	"github.com/rancher/rancher-compose/preprocess"
 	"github.com/rancher/rancher-compose/project"
+	"github.com/rancher/rancher-compose/template"
 	rUtils "github.com/rancher/rancher-compose/utils"
 	rVersion "github.com/rancher/rancher-compose/version"
 
@@ -166,14 +164,11 @@ func (c *Context) readRancherConfig() error {
 
 // TODO: try to not duplicate this logic between here and libcompose
 func (c *Context) unmarshalBytes(composeBytes, rancherComposeBytes []byte) error {
-	t, err := template.New("config").Funcs(sprig.TxtFuncMap()).Parse(string(composeBytes))
+	var err error
+	composeBytes, err = template.Apply(composeBytes, c.EnvironmentLookup.Variables())
 	if err != nil {
 		return err
 	}
-
-	buf := bytes.Buffer{}
-	t.Execute(&buf, c.EnvironmentLookup.Variables())
-	composeBytes = buf.Bytes()
 
 	rawServiceMap := config.RawServiceMap{}
 	if composeBytes != nil {

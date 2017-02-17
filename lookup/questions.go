@@ -10,6 +10,7 @@ import (
 	"github.com/docker/libcompose/utils"
 	"github.com/rancher/rancher-catalog-service/model"
 	"github.com/rancher/rancher-compose/config"
+	rUtils "github.com/rancher/rancher-compose/utils"
 	"gopkg.in/yaml.v2"
 )
 
@@ -21,7 +22,6 @@ type QuestionLookup struct {
 	parent    config.EnvironmentLookup
 	questions map[string]model.Question
 	variables map[string]string
-	//Context   *rancher.Context
 }
 
 func NewQuestionLookup(file string, parent config.EnvironmentLookup) (*QuestionLookup, error) {
@@ -111,16 +111,6 @@ func (f *QuestionLookup) Lookup(key string, config *config.ServiceConfig) []stri
 		return join(key, v)
 	}
 
-	// TODO: needed?
-	/*if f.Context != nil {
-		stack, err := f.Context.LoadStack()
-		if err == nil && stack != nil {
-			if v, ok := stack.Environment[key]; ok {
-				return join(key, fmt.Sprintf("%v", v))
-			}
-		}
-	}*/
-
 	if f.parent != nil {
 		parentResult := f.parent.Lookup(key, config)
 		if len(parentResult) > 0 {
@@ -161,7 +151,7 @@ func ask(question model.Question) string {
 	return answer
 }
 
-// TODO
 func (f *QuestionLookup) Variables() map[string]string {
-	return map[string]string{}
+	// TODO: precedence
+	return rUtils.MapUnion(f.variables, f.parent.Variables())
 }
