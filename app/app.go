@@ -12,6 +12,7 @@ import (
 	"github.com/rancher/rancher-compose/project"
 	"github.com/rancher/rancher-compose/project/options"
 	"github.com/rancher/rancher-compose/rancher"
+	"github.com/rancher/rancher-compose/upgrade"
 	"github.com/urfave/cli"
 )
 
@@ -97,6 +98,47 @@ func WithProject(factory *ProjectFactory, action ProjectAction) func(context *cl
 	}
 }
 
+func UpgradeCommand(factory *ProjectFactory) cli.Command {
+	return cli.Command{
+		Name:   "upgrade",
+		Usage:  "Perform rolling upgrade between services",
+		Action: WithProject(factory, Upgrade),
+		Flags: []cli.Flag{
+			cli.IntFlag{
+				Name:  "batch-size",
+				Usage: "Number of containers to upgrade at once",
+				Value: 2,
+			},
+			cli.IntFlag{
+				Name:  "scale",
+				Usage: "Final number of running containers",
+				Value: -1,
+			},
+			cli.IntFlag{
+				Name:  "interval",
+				Usage: "Update interval in milliseconds",
+				Value: 2000,
+			},
+			cli.BoolTFlag{
+				Name:  "update-links",
+				Usage: "Update inbound links on target service",
+			},
+			cli.BoolFlag{
+				Name:  "wait,w",
+				Usage: "Wait for upgrade to complete",
+			},
+			cli.BoolFlag{
+				Name:  "pull, p",
+				Usage: "Before doing the upgrade do an image pull on all hosts that have the image already",
+			},
+			cli.BoolFlag{
+				Name:  "cleanup, c",
+				Usage: "Remove the original service definition once upgraded, implies --wait",
+			},
+		},
+	}
+}
+
 func UpCommand(factory *ProjectFactory) cli.Command {
 	return cli.Command{
 		Name:   "up",
@@ -177,5 +219,27 @@ func ProjectUp(p *project.Project, c *cli.Context) error {
 		<-make(chan interface{})
 	}
 
+	return nil
+}
+
+func Upgrade(p *project.Project, c *cli.Context) error {
+	args := c.Args()
+	if len(args) != 2 {
+		logrus.Fatalf("Please pass arguments in the form: [from service] [to service]")
+	}
+
+	err := upgrade.Upgrade(p, args[0], args[1], upgrade.UpgradeOpts{
+		BatchSize:      c.Int("batch-size"),
+		IntervalMillis: c.Int("interval"),
+		FinalScale:     c.Int("scale"),
+		UpdateLinks:    c.Bool("update-links"),
+		Wait:           c.Bool("wait"),
+		CleanUp:        c.Bool("cleanup"),
+		Pull:           c.Bool("pull"),
+	})
+
+	if err != nil {
+		logrus.Fatal(err)
+	}
 	return nil
 }

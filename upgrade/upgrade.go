@@ -22,7 +22,7 @@ type UpgradeOpts struct {
 	Pull           bool
 }
 
-func Upgrade(p project.APIProject, from, to string, opts UpgradeOpts) error {
+func Upgrade(p *project.Project, from, to string, opts UpgradeOpts) error {
 	fromService, err := p.CreateService(from)
 	if err != nil {
 		return err
@@ -139,7 +139,7 @@ func Upgrade(p project.APIProject, from, to string, opts UpgradeOpts) error {
 	return nil
 }
 
-func upgradeInfo(up bool, p project.APIProject, from, to string, opts UpgradeOpts) (*client.Service, *client.Service, *client.RancherClient, error) {
+func upgradeInfo(up bool, p *project.Project, from, to string, opts UpgradeOpts) (*client.Service, *client.Service, *client.RancherClient, error) {
 	fromService, err := p.CreateService(from)
 	if err != nil {
 		return nil, nil, nil, err

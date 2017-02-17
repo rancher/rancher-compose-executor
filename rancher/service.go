@@ -112,7 +112,7 @@ func (r *RancherService) up(create bool) error {
 
 	if service != nil && create && r.shouldUpgrade(service) {
 		if r.context.Pull {
-			if err := r.pull(context.Background()); err != nil {
+			if err := r.Pull(context.Background()); err != nil {
 				return err
 			}
 		}
@@ -158,6 +158,29 @@ func (r *RancherService) up(create bool) error {
 	}
 
 	return err
+}
+
+func (r *RancherService) Delete(ctx context.Context, options options.Delete) error {
+	service, err := r.FindExisting(r.name)
+
+	if err == nil && service == nil {
+		return nil
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if service.Removed != "" || service.State == "removing" || service.State == "removed" {
+		return nil
+	}
+
+	err = r.context.Client.Service.Delete(service)
+	if err != nil {
+		return err
+	}
+
+	return r.Wait(service)
 }
 
 func (r *RancherService) resolveServiceAndStackId(name string) (string, string, error) {
@@ -545,7 +568,7 @@ func (r *RancherService) pullImage(image string, labels map[string]string) error
 	return nil
 }
 
-func (r *RancherService) pull(ctx context.Context) (err error) {
+func (r *RancherService) Pull(ctx context.Context) (err error) {
 	config := r.Config()
 	if config.Image == "" || FindServiceType(r) != RancherType {
 		return
