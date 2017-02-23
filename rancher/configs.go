@@ -10,8 +10,8 @@ import (
 	"github.com/docker/libcompose/utils"
 	"github.com/docker/libcompose/yaml"
 	"github.com/rancher/go-rancher/v2"
-	"github.com/rancher/rancher-compose/config"
-	"github.com/rancher/rancher-compose/convert"
+	"github.com/rancher/rancher-compose-executor/config"
+	"github.com/rancher/rancher-compose-executor/convert"
 )
 
 func createLaunchConfigs(r *RancherService) (client.LaunchConfig, []client.SecondaryLaunchConfig, error) {

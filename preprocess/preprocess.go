@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/rancher/rancher-compose/config"
+	"github.com/rancher/rancher-compose-executor/config"
 )
 
 func PreprocessServiceMap(serviceMap config.RawServiceMap) (config.RawServiceMap, error) {

@@ -12,7 +12,7 @@ OS_ARCH_ARG[windows]="386 amd64"
 OS_ARCH_ARG[darwin]="amd64"
 
 go generate
-go build -ldflags="-w -X github.com/rancher/rancher-compose/version.VERSION=$VERSION" -o bin/rancher-compose
+go build -ldflags="-w -X github.com/rancher/rancher-compose-executor/version.VERSION=$VERSION" -o bin/rancher-compose
 
 if [ -n "$CROSS" ]; then
     rm -rf build/bin
@@ -25,7 +25,7 @@ if [ -n "$CROSS" ]; then
             fi
             echo "Building binary for $OS/$ARCH..."
             GOARCH=$ARCH GOOS=$OS CGO_ENABLED=0 go build \
-                  -ldflags="-w -X github.com/rancher/rancher-compose/version.VERSION=$VERSION" \
+                  -ldflags="-w -X github.com/rancher/rancher-compose-executor/version.VERSION=$VERSION" \
                   -o ${OUTPUT_BIN} ./
         done
     done

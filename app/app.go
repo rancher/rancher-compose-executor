@@ -8,11 +8,11 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/libcompose/cli/logger"
-	"github.com/rancher/rancher-compose/lookup"
-	"github.com/rancher/rancher-compose/project"
-	"github.com/rancher/rancher-compose/project/options"
-	"github.com/rancher/rancher-compose/rancher"
-	"github.com/rancher/rancher-compose/upgrade"
+	"github.com/rancher/rancher-compose-executor/lookup"
+	"github.com/rancher/rancher-compose-executor/project"
+	"github.com/rancher/rancher-compose-executor/project/options"
+	"github.com/rancher/rancher-compose-executor/rancher"
+	"github.com/rancher/rancher-compose-executor/upgrade"
 	"github.com/urfave/cli"
 )
 

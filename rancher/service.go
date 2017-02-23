@@ -15,11 +15,11 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/rancher/go-rancher/hostaccess"
 	"github.com/rancher/go-rancher/v2"
-	"github.com/rancher/rancher-compose/config"
-	"github.com/rancher/rancher-compose/docker/service"
-	"github.com/rancher/rancher-compose/project"
-	"github.com/rancher/rancher-compose/project/options"
-	rUtils "github.com/rancher/rancher-compose/utils"
+	"github.com/rancher/rancher-compose-executor/config"
+	"github.com/rancher/rancher-compose-executor/docker/service"
+	"github.com/rancher/rancher-compose-executor/project"
+	"github.com/rancher/rancher-compose-executor/project/options"
+	rUtils "github.com/rancher/rancher-compose-executor/utils"
 )
 
 type Link struct {

@@ -3,8 +3,8 @@ package rancher
 import (
 	"golang.org/x/net/context"
 
-	"github.com/rancher/rancher-compose/config"
-	"github.com/rancher/rancher-compose/project"
+	"github.com/rancher/rancher-compose-executor/config"
+	"github.com/rancher/rancher-compose-executor/project"
 )
 
 type Sidekick struct {

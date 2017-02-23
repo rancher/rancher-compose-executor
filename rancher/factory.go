@@ -1,6 +1,6 @@
 package rancher
 
-import "github.com/rancher/rancher-compose/digest"
+import "github.com/rancher/rancher-compose-executor/digest"
 
 type Factory interface {
 	Hash(service *RancherService) (digest.ServiceHash, error)

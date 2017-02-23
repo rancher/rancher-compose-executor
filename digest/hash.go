@@ -10,7 +10,7 @@ import (
 
 	"github.com/docker/libcompose/utils"
 	"github.com/rancher/go-rancher/v2"
-	rUtils "github.com/rancher/rancher-compose/utils"
+	rUtils "github.com/rancher/rancher-compose-executor/utils"
 )
 
 const (

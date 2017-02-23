@@ -17,7 +17,7 @@ import (
 	"github.com/docker/docker/builder/dockerignore"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/fileutils"
-	"github.com/rancher/rancher-compose/project"
+	"github.com/rancher/rancher-compose-executor/project"
 )
 
 const DefaultDockerfileName = "Dockerfile"

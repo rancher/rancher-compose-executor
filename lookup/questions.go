@@ -9,8 +9,8 @@ import (
 
 	"github.com/docker/libcompose/utils"
 	"github.com/rancher/rancher-catalog-service/model"
-	"github.com/rancher/rancher-compose/config"
-	rUtils "github.com/rancher/rancher-compose/utils"
+	"github.com/rancher/rancher-compose-executor/config"
+	rUtils "github.com/rancher/rancher-compose-executor/utils"
 	"gopkg.in/yaml.v2"
 )
 

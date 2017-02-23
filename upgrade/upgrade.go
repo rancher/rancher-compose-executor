@@ -7,9 +7,9 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/rancher/go-rancher/v2"
-	"github.com/rancher/rancher-compose/project"
-	"github.com/rancher/rancher-compose/project/options"
-	"github.com/rancher/rancher-compose/rancher"
+	"github.com/rancher/rancher-compose-executor/project"
+	"github.com/rancher/rancher-compose-executor/project/options"
+	"github.com/rancher/rancher-compose-executor/rancher"
 )
 
 type UpgradeOpts struct {

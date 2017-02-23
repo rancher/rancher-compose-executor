@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/rancher/rancher-compose/config"
-	"github.com/rancher/rancher-compose/utils"
+	"github.com/rancher/rancher-compose-executor/config"
+	"github.com/rancher/rancher-compose-executor/utils"
 )
 
 type FileEnvLookup struct {

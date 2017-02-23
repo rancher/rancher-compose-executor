@@ -3,8 +3,8 @@ package project
 import (
 	"golang.org/x/net/context"
 
-	"github.com/rancher/rancher-compose/config"
-	"github.com/rancher/rancher-compose/project/options"
+	"github.com/rancher/rancher-compose-executor/config"
+	"github.com/rancher/rancher-compose-executor/project/options"
 )
 
 // this ensures EmptyService implements Service

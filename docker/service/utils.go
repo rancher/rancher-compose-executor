@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/docker/docker/api/types/container"
-	"github.com/rancher/rancher-compose/project"
+	"github.com/rancher/rancher-compose-executor/project"
 )
 
 // DefaultDependentServices return the dependent services (as an array of ServiceRelationship)

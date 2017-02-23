@@ -12,9 +12,9 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/docker/libcompose/logger"
 	"github.com/docker/libcompose/utils"
-	"github.com/rancher/rancher-compose/config"
-	"github.com/rancher/rancher-compose/lookup"
-	"github.com/rancher/rancher-compose/project/events"
+	"github.com/rancher/rancher-compose-executor/config"
+	"github.com/rancher/rancher-compose-executor/lookup"
+	"github.com/rancher/rancher-compose-executor/project/events"
 )
 
 // ComposeVersion is name of docker-compose.yml file syntax supported version

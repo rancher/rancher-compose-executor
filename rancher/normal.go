@@ -6,7 +6,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/libcompose/utils"
 	"github.com/rancher/go-rancher/v2"
-	"github.com/rancher/rancher-compose/digest"
+	"github.com/rancher/rancher-compose-executor/digest"
 )
 
 type NormalFactory struct {

@@ -5,8 +5,8 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/rancher/rancher-compose/project/events"
-	"github.com/rancher/rancher-compose/project/options"
+	"github.com/rancher/rancher-compose-executor/project/events"
+	"github.com/rancher/rancher-compose-executor/project/options"
 )
 
 // Create creates the specified services (like docker create).

@@ -3,7 +3,7 @@ package rancher
 import (
 	"strings"
 
-	"github.com/rancher/rancher-compose/project"
+	"github.com/rancher/rancher-compose-executor/project"
 )
 
 type SidekickInfo struct {

@@ -4,7 +4,7 @@ import (
 	"bytes"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/rancher/rancher-compose/project/events"
+	"github.com/rancher/rancher-compose-executor/project/events"
 )
 
 var (

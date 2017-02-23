@@ -14,8 +14,8 @@ import (
 	"github.com/docker/go-units"
 	"github.com/docker/libcompose/utils"
 	"github.com/docker/libcompose/yaml"
-	"github.com/rancher/rancher-compose/config"
-	"github.com/rancher/rancher-compose/project"
+	"github.com/rancher/rancher-compose-executor/config"
+	"github.com/rancher/rancher-compose-executor/project"
 )
 
 // ConfigWrapper wraps Config, HostConfig and NetworkingConfig for a container.

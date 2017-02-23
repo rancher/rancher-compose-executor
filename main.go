@@ -6,9 +6,9 @@ import (
 	"path"
 
 	"github.com/Sirupsen/logrus"
-	rancherApp "github.com/rancher/rancher-compose/app"
-	"github.com/rancher/rancher-compose/executor"
-	"github.com/rancher/rancher-compose/version"
+	rancherApp "github.com/rancher/rancher-compose-executor/app"
+	"github.com/rancher/rancher-compose-executor/executor"
+	"github.com/rancher/rancher-compose-executor/version"
 	"github.com/urfave/cli"
 )
 

@@ -5,7 +5,7 @@ import (
 
 	"github.com/docker/docker/runconfig/opts"
 	"github.com/docker/libcompose/yaml"
-	"github.com/rancher/rancher-compose/config"
+	"github.com/rancher/rancher-compose-executor/config"
 )
 
 // EnvfileLookup is a structure that implements the project.EnvironmentLookup interface.

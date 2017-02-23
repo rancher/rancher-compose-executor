@@ -9,7 +9,7 @@ import (
 	"github.com/docker/docker/pkg/urlutil"
 	"github.com/docker/libcompose/utils"
 	composeYaml "github.com/docker/libcompose/yaml"
-	"github.com/rancher/rancher-compose/template"
+	"github.com/rancher/rancher-compose-executor/template"
 	"gopkg.in/yaml.v2"
 )
 

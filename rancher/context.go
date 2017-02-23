@@ -15,12 +15,12 @@ import (
 	"github.com/fatih/structs"
 	legacyClient "github.com/rancher/go-rancher/client"
 	"github.com/rancher/go-rancher/v2"
-	"github.com/rancher/rancher-compose/config"
-	"github.com/rancher/rancher-compose/preprocess"
-	"github.com/rancher/rancher-compose/project"
-	"github.com/rancher/rancher-compose/template"
-	rUtils "github.com/rancher/rancher-compose/utils"
-	rVersion "github.com/rancher/rancher-compose/version"
+	"github.com/rancher/rancher-compose-executor/config"
+	"github.com/rancher/rancher-compose-executor/preprocess"
+	"github.com/rancher/rancher-compose-executor/project"
+	"github.com/rancher/rancher-compose-executor/template"
+	rUtils "github.com/rancher/rancher-compose-executor/utils"
+	rVersion "github.com/rancher/rancher-compose-executor/version"
 
 	"github.com/hashicorp/go-version"
 )

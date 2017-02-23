@@ -3,7 +3,7 @@ package project
 import (
 	"golang.org/x/net/context"
 
-	"github.com/rancher/rancher-compose/project/events"
+	"github.com/rancher/rancher-compose-executor/project/events"
 )
 
 // Log aggregates and prints out the logs for the specified services.

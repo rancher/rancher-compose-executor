@@ -11,7 +11,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/libcompose/logger"
-	"github.com/rancher/rancher-compose/config"
+	"github.com/rancher/rancher-compose-executor/config"
 )
 
 var projectRegexp = regexp.MustCompile("[^a-zA-Z0-9_.-]")

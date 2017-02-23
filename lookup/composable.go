@@ -1,8 +1,8 @@
 package lookup
 
 import (
-	"github.com/rancher/rancher-compose/config"
-	"github.com/rancher/rancher-compose/utils"
+	"github.com/rancher/rancher-compose-executor/config"
+	"github.com/rancher/rancher-compose-executor/utils"
 )
 
 // ComposableEnvLookup is a structure that implements the project.EnvironmentLookup interface.

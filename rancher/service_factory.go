@@ -1,8 +1,8 @@
 package rancher
 
 import (
-	"github.com/rancher/rancher-compose/config"
-	"github.com/rancher/rancher-compose/project"
+	"github.com/rancher/rancher-compose-executor/config"
+	"github.com/rancher/rancher-compose-executor/project"
 )
 
 type RancherServiceFactory struct {

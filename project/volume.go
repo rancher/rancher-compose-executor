@@ -3,7 +3,7 @@ package project
 import (
 	"golang.org/x/net/context"
 
-	"github.com/rancher/rancher-compose/config"
+	"github.com/rancher/rancher-compose-executor/config"
 )
 
 // Volumes defines the methods a libcompose volume aggregate should define.

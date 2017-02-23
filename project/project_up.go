@@ -3,8 +3,8 @@ package project
 import (
 	"golang.org/x/net/context"
 
-	"github.com/rancher/rancher-compose/project/events"
-	"github.com/rancher/rancher-compose/project/options"
+	"github.com/rancher/rancher-compose-executor/project/events"
+	"github.com/rancher/rancher-compose-executor/project/options"
 )
 
 // Up creates and starts the specified services (kinda like docker run).
