@@ -25,6 +25,7 @@ type Context struct {
 	isOpen              bool
 	ServiceFactory      ServiceFactory
 	VolumesFactory      VolumesFactory
+	HostsFactory        HostsFactory
 	EnvironmentLookup   config.EnvironmentLookup
 	ResourceLookup      config.ResourceLookup
 	LoggerFactory       logger.Factory

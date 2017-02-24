@@ -9,6 +9,7 @@ import (
 	"github.com/docker/docker/pkg/urlutil"
 	"github.com/docker/libcompose/utils"
 	composeYaml "github.com/docker/libcompose/yaml"
+	"github.com/rancher/go-rancher/v2"
 	"github.com/rancher/rancher-compose-executor/template"
 	"gopkg.in/yaml.v2"
 )
@@ -50,7 +51,7 @@ func CreateConfig(contents []byte) (*Config, error) {
 }
 
 // Merge merges a compose file into an existing set of service configs
-func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup, resourceLookup ResourceLookup, file string, contents []byte, options *ParseOptions) (string, map[string]*ServiceConfig, map[string]*VolumeConfig, map[string]*NetworkConfig, error) {
+func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup, resourceLookup ResourceLookup, file string, contents []byte, options *ParseOptions) (string, map[string]*ServiceConfig, map[string]*VolumeConfig, map[string]*NetworkConfig, map[string]*client.Host, error) {
 	if options == nil {
 		options = &defaultParseOptions
 	}
@@ -58,30 +59,30 @@ func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup
 	var err error
 	contents, err = template.Apply(contents, environmentLookup.Variables())
 	if err != nil {
-		return "", nil, nil, nil, err
+		return "", nil, nil, nil, nil, err
 	}
 
 	config, err := CreateConfig(contents)
 	if err != nil {
-		return "", nil, nil, nil, err
+		return "", nil, nil, nil, nil, err
 	}
 	baseRawServices := config.Services
 
 	if options.Interpolate {
 		if err := InterpolateRawServiceMap(&baseRawServices, environmentLookup); err != nil {
-			return "", nil, nil, nil, err
+			return "", nil, nil, nil, nil, err
 		}
 
 		for k, v := range config.Volumes {
 			if err := Interpolate(k, &v, environmentLookup); err != nil {
-				return "", nil, nil, nil, err
+				return "", nil, nil, nil, nil, err
 			}
 			config.Volumes[k] = v
 		}
 
 		for k, v := range config.Networks {
 			if err := Interpolate(k, &v, environmentLookup); err != nil {
-				return "", nil, nil, nil, err
+				return "", nil, nil, nil, nil, err
 			}
 			config.Networks[k] = v
 		}
@@ -91,7 +92,7 @@ func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup
 		var err error
 		baseRawServices, err = options.Preprocess(baseRawServices)
 		if err != nil {
-			return "", nil, nil, nil, err
+			return "", nil, nil, nil, nil, err
 		}
 	}
 
@@ -100,16 +101,16 @@ func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup
 		var err error
 		serviceConfigs, err = MergeServicesV2(existingServices, environmentLookup, resourceLookup, file, baseRawServices, options)
 		if err != nil {
-			return "", nil, nil, nil, err
+			return "", nil, nil, nil, nil, err
 		}
 	} else {
 		serviceConfigsV1, err := MergeServicesV1(existingServices, environmentLookup, resourceLookup, file, baseRawServices, options)
 		if err != nil {
-			return "", nil, nil, nil, err
+			return "", nil, nil, nil, nil, err
 		}
 		serviceConfigs, err = ConvertServices(serviceConfigsV1)
 		if err != nil {
-			return "", nil, nil, nil, err
+			return "", nil, nil, nil, nil, err
 		}
 	}
 
@@ -119,14 +120,15 @@ func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup
 		var err error
 		serviceConfigs, err = options.Postprocess(serviceConfigs)
 		if err != nil {
-			return "", nil, nil, nil, err
+			return "", nil, nil, nil, nil, err
 		}
 	}
 
 	var volumes map[string]*VolumeConfig
 	var networks map[string]*NetworkConfig
+	var hosts map[string]*client.Host
 	if err := utils.Convert(config.Volumes, &volumes); err != nil {
-		return "", nil, nil, nil, err
+		return "", nil, nil, nil, nil, err
 	}
 	for i, volume := range volumes {
 		if volume == nil {
@@ -134,10 +136,13 @@ func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup
 		}
 	}
 	if err := utils.Convert(config.Networks, &networks); err != nil {
-		return "", nil, nil, nil, err
+		return "", nil, nil, nil, nil, err
+	}
+	if err := utils.Convert(config.Hosts, &hosts); err != nil {
+		return "", nil, nil, nil, nil, err
 	}
 
-	return config.Version, serviceConfigs, volumes, networks, nil
+	return config.Version, serviceConfigs, volumes, networks, hosts, nil
 }
 
 func InterpolateRawServiceMap(baseRawServices *RawServiceMap, environmentLookup EnvironmentLookup) error {

@@ -195,6 +195,7 @@ type Config struct {
 	Services RawServiceMap          `yaml:"services,omitempty"`
 	Volumes  map[string]interface{} `yaml:"volumes,omitempty"`
 	Networks map[string]interface{} `yaml:"networks,omitempty"`
+	Hosts    map[string]interface{} `yaml:"hosts,omitempty"`
 }
 
 // NewServiceConfigs initializes a new Configs struct
