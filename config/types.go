@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/docker/libcompose/yaml"
+	"github.com/rancher/go-rancher/v2"
 )
 
 // EnvironmentLookup defines methods to provides environment variable loading.
@@ -189,13 +190,19 @@ type NetworkConfig struct {
 	Ipam       Ipam              `yaml:"ipam,omitempty"`
 }
 
-// Config holds libcompose top level configuration
-type Config struct {
+type RawConfig struct {
 	Version  string                 `yaml:"version,omitempty"`
 	Services RawServiceMap          `yaml:"services,omitempty"`
 	Volumes  map[string]interface{} `yaml:"volumes,omitempty"`
 	Networks map[string]interface{} `yaml:"networks,omitempty"`
 	Hosts    map[string]interface{} `yaml:"hosts,omitempty"`
+}
+
+type Config struct {
+	Services map[string]*ServiceConfig `yaml:"services,omitempty"`
+	Volumes  map[string]*VolumeConfig  `yaml:"volumes,omitempty"`
+	Networks map[string]*NetworkConfig `yaml:"networks,omitempty"`
+	Hosts    map[string]*client.Host   `yaml:"hosts,omitempty"`
 }
 
 // NewServiceConfigs initializes a new Configs struct

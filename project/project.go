@@ -173,26 +173,26 @@ func (p *Project) Load(bytes []byte) error {
 }
 
 func (p *Project) load(file string, bytes []byte) error {
-	_, serviceConfigs, volumeConfigs, networkConfigs, hostConfigs, err := config.Merge(p.ServiceConfigs, p.context.EnvironmentLookup, p.context.ResourceLookup, file, bytes, p.ParseOptions)
+	config, err := config.Merge(p.ServiceConfigs, p.context.EnvironmentLookup, p.context.ResourceLookup, file, bytes, p.ParseOptions)
 	if err != nil {
 		log.Errorf("Could not parse config for project %s : %v", p.Name, err)
 		return err
 	}
 
-	for name, config := range serviceConfigs {
+	for name, config := range config.Services {
 		p.ServiceConfigs.Add(name, config)
 		p.reload = append(p.reload, name)
 	}
 
-	for name, config := range volumeConfigs {
+	for name, config := range config.Volumes {
 		p.VolumeConfigs[name] = config
 	}
 
-	for name, config := range networkConfigs {
+	for name, config := range config.Networks {
 		p.NetworkConfigs[name] = config
 	}
 
-	for name, config := range hostConfigs {
+	for name, config := range config.Hosts {
 		p.HostConfigs[name] = config
 	}
 

@@ -172,21 +172,21 @@ func (c *Context) unmarshalBytes(composeBytes, rancherComposeBytes []byte) error
 
 	rawServiceMap := config.RawServiceMap{}
 	if composeBytes != nil {
-		config, err := config.CreateConfig(composeBytes)
+		rawConfig, err := config.CreateRawConfig(composeBytes)
 		if err != nil {
 			return err
 		}
-		rawServiceMap = config.Services
+		rawServiceMap = rawConfig.Services
 		for key := range rawServiceMap {
 			delete(rawServiceMap[key], "hostname")
 		}
 	}
 	if rancherComposeBytes != nil && len(rancherComposeBytes) > 0 {
-		config, err := config.CreateConfig(rancherComposeBytes)
+		rawConfig, err := config.CreateRawConfig(rancherComposeBytes)
 		if err != nil {
 			return err
 		}
-		rawServiceMap = config.Services
+		rawServiceMap = rawConfig.Services
 	}
 	return c.fillInRancherConfig(rawServiceMap)
 }

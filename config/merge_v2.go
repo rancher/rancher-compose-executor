@@ -87,11 +87,11 @@ func parseV2(resourceLookup ResourceLookup, environmentLookup EnvironmentLookup,
 			return nil, err
 		}
 
-		config, err := CreateConfig(bytes)
+		rawConfig, err := CreateRawConfig(bytes)
 		if err != nil {
 			return nil, err
 		}
-		baseRawServices := config.Services
+		baseRawServices := rawConfig.Services
 
 		if options.Interpolate {
 			if err = InterpolateRawServiceMap(&baseRawServices, environmentLookup); err != nil {
