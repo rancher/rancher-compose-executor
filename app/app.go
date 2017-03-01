@@ -16,10 +16,10 @@ import (
 	"github.com/urfave/cli"
 )
 
-type ProjectFactory struct {
+type RancherProjectFactory struct {
 }
 
-func (p *ProjectFactory) Create(c *cli.Context) (*project.Project, error) {
+func (p *RancherProjectFactory) Create(c *cli.Context) (*project.Project, error) {
 	rancherComposeFile, err := rancher.ResolveRancherCompose(c.GlobalString("file"),
 		c.GlobalString("rancher-file"))
 	if err != nil {
@@ -88,7 +88,7 @@ func Populate(context *project.Context, c *cli.Context) {
 
 type ProjectAction func(project *project.Project, c *cli.Context) error
 
-func WithProject(factory *ProjectFactory, action ProjectAction) func(context *cli.Context) error {
+func WithProject(factory ProjectFactory, action ProjectAction) func(context *cli.Context) error {
 	return func(context *cli.Context) error {
 		p, err := factory.Create(context)
 		if err != nil {
@@ -98,7 +98,7 @@ func WithProject(factory *ProjectFactory, action ProjectAction) func(context *cl
 	}
 }
 
-func UpgradeCommand(factory *ProjectFactory) cli.Command {
+func UpgradeCommand(factory ProjectFactory) cli.Command {
 	return cli.Command{
 		Name:   "upgrade",
 		Usage:  "Perform rolling upgrade between services",
@@ -139,7 +139,7 @@ func UpgradeCommand(factory *ProjectFactory) cli.Command {
 	}
 }
 
-func UpCommand(factory *ProjectFactory) cli.Command {
+func UpCommand(factory ProjectFactory) cli.Command {
 	return cli.Command{
 		Name:   "up",
 		Usage:  "Bring all services up",
@@ -183,7 +183,7 @@ func UpCommand(factory *ProjectFactory) cli.Command {
 	}
 }
 
-func CreateCommand(factory *ProjectFactory) cli.Command {
+func CreateCommand(factory ProjectFactory) cli.Command {
 	return cli.Command{
 		Name:   "create",
 		Usage:  "Create all services but do not start",
