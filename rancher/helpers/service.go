@@ -2,7 +2,6 @@ package rancher
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"strings"
 	"sync"
@@ -10,222 +9,17 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/api/types/container"
 	"github.com/docker/libcompose/labels"
 	"github.com/gorilla/websocket"
 	"github.com/rancher/go-rancher/hostaccess"
 	"github.com/rancher/go-rancher/v2"
-	"github.com/rancher/rancher-compose-executor/config"
 	"github.com/rancher/rancher-compose-executor/docker/service"
 	"github.com/rancher/rancher-compose-executor/project"
-	"github.com/rancher/rancher-compose-executor/project/options"
 	rUtils "github.com/rancher/rancher-compose-executor/utils"
 )
 
 type Link struct {
 	ServiceName, Alias string
-}
-
-type IsDone func(*client.Resource) (bool, error)
-
-type ContainerInspect struct {
-	Name       string
-	Config     *container.Config
-	HostConfig *container.HostConfig
-}
-
-type RancherService struct {
-	name          string
-	serviceConfig *config.ServiceConfig
-	context       *Context
-}
-
-func (r *RancherService) Name() string {
-	return r.name
-}
-
-func (r *RancherService) Config() *config.ServiceConfig {
-	return r.serviceConfig
-}
-
-func (r *RancherService) Context() *Context {
-	return r.context
-}
-
-func NewService(name string, config *config.ServiceConfig, context *Context) *RancherService {
-	return &RancherService{
-		name:          name,
-		serviceConfig: config,
-		context:       context,
-	}
-}
-
-func (r *RancherService) RancherService() (*client.Service, error) {
-	return r.FindExisting(r.name)
-}
-
-func (r *RancherService) Create(ctx context.Context, options options.Create) error {
-	service, err := r.FindExisting(r.name)
-
-	if err == nil && service == nil {
-		service, err = r.createService()
-	} else if err == nil && service != nil {
-		err = r.setupLinks(service, service.State == "inactive")
-	}
-
-	return err
-}
-
-func (r *RancherService) Start(ctx context.Context) error {
-	return r.up(false)
-}
-
-func (r *RancherService) Up(ctx context.Context, options options.Up) error {
-	return r.up(true)
-}
-
-func (r *RancherService) Build(ctx context.Context, buildOptions options.Build) error {
-	return nil
-}
-
-func (r *RancherService) up(create bool) error {
-	service, err := r.FindExisting(r.name)
-	if err != nil {
-		return err
-	}
-
-	if r.Context().Rollback {
-		if service == nil {
-			return nil
-		}
-
-		_, err := r.rollback(service)
-		return err
-	}
-
-	if service != nil && create && r.shouldUpgrade(service) {
-		if r.context.Pull {
-			if err := r.Pull(context.Background()); err != nil {
-				return err
-			}
-		}
-
-		service, err = r.upgrade(service, r.context.ForceUpgrade, r.context.Args)
-		if err != nil {
-			return err
-		}
-	}
-
-	if service == nil && !create {
-		return nil
-	}
-
-	if service == nil {
-		service, err = r.createService()
-	} else {
-		err = r.setupLinks(service, true)
-	}
-
-	if err != nil {
-		return err
-	}
-
-	if service.State == "upgraded" && r.context.ConfirmUpgrade {
-		service, err = r.context.Client.Service.ActionFinishupgrade(service)
-		if err != nil {
-			return err
-		}
-		err = r.Wait(service)
-		if err != nil {
-			return err
-		}
-	}
-
-	if service.State == "active" {
-		return nil
-	}
-
-	if service.Actions["activate"] != "" {
-		service, err = r.context.Client.Service.ActionActivate(service)
-		err = r.Wait(service)
-	}
-
-	return err
-}
-
-func (r *RancherService) Delete(ctx context.Context, options options.Delete) error {
-	service, err := r.FindExisting(r.name)
-
-	if err == nil && service == nil {
-		return nil
-	}
-
-	if err != nil {
-		return err
-	}
-
-	if service.Removed != "" || service.State == "removing" || service.State == "removed" {
-		return nil
-	}
-
-	err = r.context.Client.Service.Delete(service)
-	if err != nil {
-		return err
-	}
-
-	return r.Wait(service)
-}
-
-func (r *RancherService) resolveServiceAndStackId(name string) (string, string, error) {
-	parts := strings.SplitN(name, "/", 2)
-	if len(parts) == 1 {
-		return name, r.context.Stack.Id, nil
-	}
-
-	stacks, err := r.context.Client.Stack.List(&client.ListOpts{
-		Filters: map[string]interface{}{
-			"name":         parts[0],
-			"removed_null": nil,
-		},
-	})
-
-	if err != nil {
-		return "", "", err
-	}
-
-	if len(stacks.Data) == 0 {
-		return "", "", fmt.Errorf("Failed to find stack: %s", parts[0])
-	}
-
-	return parts[1], stacks.Data[0].Id, nil
-}
-
-func (r *RancherService) FindExisting(name string) (*client.Service, error) {
-	logrus.Debugf("Finding service %s", name)
-
-	name, stackId, err := r.resolveServiceAndStackId(name)
-	if err != nil {
-		return nil, err
-	}
-
-	services, err := r.context.Client.Service.List(&client.ListOpts{
-		Filters: map[string]interface{}{
-			"stackId":      stackId,
-			"name":         name,
-			"removed_null": nil,
-		},
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	if len(services.Data) == 0 {
-		return nil, nil
-	}
-
-	logrus.Debugf("Found service %s", name)
-	return &services.Data[0], nil
 }
 
 func (r *RancherService) Metadata() map[string]interface{} {
@@ -235,38 +29,6 @@ func (r *RancherService) Metadata() map[string]interface{} {
 // TODO: is this still needed?
 func (r *RancherService) HealthCheck(service string) *client.InstanceHealthCheck {
 	return r.serviceConfig.HealthCheck
-}
-
-func (r *RancherService) getConfiguredScale() int {
-	if r.serviceConfig.Scale > 0 {
-		return int(r.serviceConfig.Scale)
-	}
-	return 1
-}
-
-func (r *RancherService) createService() (*client.Service, error) {
-	logrus.Infof("Creating service %s", r.name)
-
-	factory, err := GetFactory(r)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := factory.Create(r); err != nil {
-		return nil, err
-	}
-
-	service, err := r.FindExisting(r.name)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := r.setupLinks(service, true); err != nil {
-		return nil, err
-	}
-
-	err = r.Wait(service)
-	return service, err
 }
 
 func (r *RancherService) setupLinks(service *client.Service, update bool) error {
@@ -355,26 +117,6 @@ func (r *RancherService) getLinks() (map[Link]string, error) {
 	return result, nil
 }
 
-func (r *RancherService) Scale(ctx context.Context, count int, timeout int) error {
-	service, err := r.FindExisting(r.name)
-	if err != nil {
-		return err
-	}
-
-	if service == nil {
-		return fmt.Errorf("Failed to find %s to scale", r.name)
-	}
-
-	service, err = r.context.Client.Service.Update(service, map[string]interface{}{
-		"scale": count,
-	})
-	if err != nil {
-		return err
-	}
-
-	return r.Wait(service)
-}
-
 func (r *RancherService) containers() ([]client.Container, error) {
 	service, err := r.FindExisting(r.name)
 	if err != nil {
@@ -389,31 +131,6 @@ func (r *RancherService) containers() ([]client.Container, error) {
 	}
 
 	return instances.Data, nil
-}
-
-func (r *RancherService) Restart(ctx context.Context, timeout int) error {
-	service, err := r.FindExisting(r.name)
-	if err != nil {
-		return err
-	}
-
-	if service == nil {
-		return fmt.Errorf("Failed to find %s to restart", r.name)
-	}
-
-	service, err = r.context.Client.Service.ActionRestart(service, &client.ServiceRestart{
-		RollingRestartStrategy: client.RollingRestartStrategy{
-			BatchSize:      r.context.BatchSize,
-			IntervalMillis: r.context.Interval,
-		},
-	})
-
-	if err != nil {
-		logrus.Errorf("Failed to restart %s: %v", r.Name(), err)
-		return err
-	}
-
-	return r.Wait(service)
 }
 
 func (r *RancherService) Log(ctx context.Context, follow bool) error {
@@ -504,10 +221,6 @@ func (r *RancherService) DependentServices() []project.ServiceRelationship {
 
 func (r *RancherService) Client() *client.RancherClient {
 	return r.context.Client
-}
-
-func (r *RancherService) Kill(ctx context.Context, signal string) error {
-	return project.ErrUnsupported
 }
 
 func (r *RancherService) pullImage(image string, labels map[string]string) error {

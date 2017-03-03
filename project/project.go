@@ -30,7 +30,6 @@ type Project struct {
 	HostConfigs    map[string]*client.Host
 	Files          []string
 	ReloadCallback func() error
-	ParseOptions   *config.ParseOptions
 
 	volumes      Volumes
 	hosts        Hosts
@@ -42,10 +41,9 @@ type Project struct {
 }
 
 // NewProject creates a new project with the specified context.
-func NewProject(context *Context, parseOptions *config.ParseOptions) *Project {
+func NewProject(context *Context) *Project {
 	p := &Project{
 		context:        context,
-		ParseOptions:   parseOptions,
 		ServiceConfigs: config.NewServiceConfigs(),
 		VolumeConfigs:  make(map[string]*config.VolumeConfig),
 		NetworkConfigs: make(map[string]*config.NetworkConfig),
@@ -165,15 +163,8 @@ func (p *Project) CreateService(name string) (Service, error) {
 	return p.context.ServiceFactory.Create(p, name, &config)
 }
 
-// Load loads the specified byte array (the composefile content) and adds the
-// service configuration to the project.
-// FIXME is it needed ?
-func (p *Project) Load(bytes []byte) error {
-	return p.load("", bytes)
-}
-
 func (p *Project) load(file string, bytes []byte) error {
-	config, err := config.Merge(p.ServiceConfigs, p.context.EnvironmentLookup, p.context.ResourceLookup, file, bytes, p.ParseOptions)
+	config, err := config.Merge(p.ServiceConfigs, p.context.EnvironmentLookup, p.context.ResourceLookup, file, bytes)
 	if err != nil {
 		log.Errorf("Could not parse config for project %s : %v", p.Name, err)
 		return err

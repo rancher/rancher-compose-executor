@@ -19,10 +19,6 @@ var (
 		"links",
 		"volumes_from",
 	}
-	defaultParseOptions = ParseOptions{
-		Interpolate: true,
-		Validate:    true,
-	}
 )
 
 // CreateRawConfig unmarshals contents to config and creates config based on version
@@ -36,6 +32,9 @@ func CreateRawConfig(contents []byte) (*RawConfig, error) {
 		var baseRawServices RawServiceMap
 		if err := yaml.Unmarshal(contents, &baseRawServices); err != nil {
 			return nil, err
+		}
+		if _, ok := baseRawServices[".catalog"]; ok {
+			delete(baseRawServices, ".catalog")
 		}
 		rawConfig.Services = baseRawServices
 	}
@@ -51,11 +50,7 @@ func CreateRawConfig(contents []byte) (*RawConfig, error) {
 }
 
 // Merge merges a compose file into an existing set of service configs
-func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup, resourceLookup ResourceLookup, file string, contents []byte, options *ParseOptions) (*Config, error) {
-	if options == nil {
-		options = &defaultParseOptions
-	}
-
+func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup, resourceLookup ResourceLookup, file string, contents []byte) (*Config, error) {
 	var err error
 	contents, err = template.Apply(contents, environmentLookup.Variables())
 	if err != nil {
@@ -68,43 +63,38 @@ func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup
 	}
 	baseRawServices := rawConfig.Services
 
-	if options.Interpolate {
-		if err := InterpolateRawServiceMap(&baseRawServices, environmentLookup); err != nil {
-			return nil, err
-		}
-
-		for k, v := range rawConfig.Volumes {
-			if err := Interpolate(k, &v, environmentLookup); err != nil {
-				return nil, err
-			}
-			rawConfig.Volumes[k] = v
-		}
-
-		for k, v := range rawConfig.Networks {
-			if err := Interpolate(k, &v, environmentLookup); err != nil {
-				return nil, err
-			}
-			rawConfig.Networks[k] = v
-		}
+	if err := InterpolateRawServiceMap(&baseRawServices, environmentLookup); err != nil {
+		return nil, err
 	}
 
-	if options.Preprocess != nil {
-		var err error
-		baseRawServices, err = options.Preprocess(baseRawServices)
-		if err != nil {
+	for k, v := range rawConfig.Volumes {
+		if err := Interpolate(k, &v, environmentLookup); err != nil {
 			return nil, err
 		}
+		rawConfig.Volumes[k] = v
+	}
+
+	for k, v := range rawConfig.Networks {
+		if err := Interpolate(k, &v, environmentLookup); err != nil {
+			return nil, err
+		}
+		rawConfig.Networks[k] = v
+	}
+
+	baseRawServices, err = PreprocessServiceMap(baseRawServices)
+	if err != nil {
+		return nil, err
 	}
 
 	var serviceConfigs map[string]*ServiceConfig
 	if rawConfig.Version == "2" {
 		var err error
-		serviceConfigs, err = MergeServicesV2(existingServices, environmentLookup, resourceLookup, file, baseRawServices, options)
+		serviceConfigs, err = MergeServicesV2(existingServices, environmentLookup, resourceLookup, file, baseRawServices)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		serviceConfigsV1, err := MergeServicesV1(existingServices, environmentLookup, resourceLookup, file, baseRawServices, options)
+		serviceConfigsV1, err := MergeServicesV1(existingServices, environmentLookup, resourceLookup, file, baseRawServices)
 		if err != nil {
 			return nil, err
 		}
@@ -115,14 +105,6 @@ func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup
 	}
 
 	adjustValues(serviceConfigs)
-
-	if options.Postprocess != nil {
-		var err error
-		serviceConfigs, err = options.Postprocess(serviceConfigs)
-		if err != nil {
-			return nil, err
-		}
-	}
 
 	var volumes map[string]*VolumeConfig
 	var networks map[string]*NetworkConfig

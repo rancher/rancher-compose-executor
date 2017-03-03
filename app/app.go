@@ -2,6 +2,8 @@ package app
 
 import (
 	"os"
+	"path"
+	"path/filepath"
 	"strings"
 
 	"golang.org/x/net/context"
@@ -20,7 +22,22 @@ type RancherProjectFactory struct {
 }
 
 func (p *RancherProjectFactory) Create(c *cli.Context) (*project.Project, error) {
-	rancherComposeFile, err := rancher.ResolveRancherCompose(c.GlobalString("file"),
+	context := &rancher.Context{
+		Context: project.Context{
+			ResourceLookup: &lookup.FileResourceLookup{},
+			LoggerFactory:  logger.NewColorLoggerFactory(),
+		},
+		Url:        c.GlobalString("url"),
+		AccessKey:  c.GlobalString("access-key"),
+		SecretKey:  c.GlobalString("secret-key"),
+		PullCached: c.Bool("cached"),
+		Uploader:   &rancher.S3Uploader{},
+		Args:       c.Args(),
+	}
+
+	Populate(&context.Context, c)
+
+	rancherComposeFile, err := resolveRancherCompose(context.ComposeFiles[0],
 		c.GlobalString("rancher-file"))
 	if err != nil {
 		return nil, err
@@ -36,24 +53,8 @@ func (p *RancherProjectFactory) Create(c *cli.Context) (*project.Project, error)
 		return nil, err
 	}
 
-	context := &rancher.Context{
-		Context: project.Context{
-			ResourceLookup:    &lookup.FileResourceLookup{},
-			EnvironmentLookup: envLookup,
-			LoggerFactory:     logger.NewColorLoggerFactory(),
-		},
-		RancherComposeFile: c.GlobalString("rancher-file"),
-		Url:                c.GlobalString("url"),
-		AccessKey:          c.GlobalString("access-key"),
-		SecretKey:          c.GlobalString("secret-key"),
-		PullCached:         c.Bool("cached"),
-		Uploader:           &rancher.S3Uploader{},
-		Args:               c.Args(),
-	}
-	// TODO
-	//qLookup.Context = context
-
-	Populate(&context.Context, c)
+	context.EnvironmentLookup = envLookup
+	context.ComposeFiles = append(context.ComposeFiles, rancherComposeFile)
 
 	context.Upgrade = c.Bool("upgrade") || c.Bool("force-upgrade")
 	context.ForceUpgrade = c.Bool("force-upgrade")
@@ -64,6 +65,17 @@ func (p *RancherProjectFactory) Create(c *cli.Context) (*project.Project, error)
 	context.Pull = c.Bool("pull")
 
 	return rancher.NewProject(context)
+}
+
+func resolveRancherCompose(composeFile, rancherComposeFile string) (string, error) {
+	if rancherComposeFile == "" && composeFile != "" {
+		f, err := filepath.Abs(composeFile)
+		if err != nil {
+			return "", err
+		}
+		return path.Join(path.Dir(f), "rancher-compose.yml"), nil
+	}
+	return rancherComposeFile, nil
 }
 
 func Populate(context *project.Context, c *cli.Context) {

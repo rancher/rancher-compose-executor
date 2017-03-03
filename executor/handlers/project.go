@@ -25,17 +25,17 @@ func constructProjectUpgrade(logger *logrus.Entry, stack *client.Stack, upgradeO
 			ProjectName: stack.Name,
 			ComposeBytes: [][]byte{
 				[]byte(upgradeOpts.DockerCompose),
+				[]byte(upgradeOpts.RancherCompose),
 			},
 			ResourceLookup: &lookup.FileResourceLookup{},
 			EnvironmentLookup: &lookup.MapEnvLookup{
 				Env: variables,
 			},
 		},
-		Url:                 fmt.Sprintf("%s/projects/%s/schemas", url, stack.AccountId),
-		AccessKey:           accessKey,
-		SecretKey:           secretKey,
-		RancherComposeBytes: []byte(upgradeOpts.RancherCompose),
-		Upgrade:             true,
+		Url:       fmt.Sprintf("%s/projects/%s/schemas", url, stack.AccountId),
+		AccessKey: accessKey,
+		SecretKey: secretKey,
+		Upgrade:   true,
 	}
 
 	p, err := rancher.NewProject(&context)
@@ -58,16 +58,16 @@ func constructProject(logger *logrus.Entry, stack *client.Stack, url, accessKey,
 			ProjectName: stack.Name,
 			ComposeBytes: [][]byte{
 				[]byte(stack.DockerCompose),
+				[]byte(stack.RancherCompose),
 			},
 			ResourceLookup: &lookup.FileResourceLookup{},
 			EnvironmentLookup: &lookup.MapEnvLookup{
 				Env: variables,
 			},
 		},
-		Url:                 fmt.Sprintf("%s/projects/%s/schemas", url, stack.AccountId),
-		AccessKey:           accessKey,
-		SecretKey:           secretKey,
-		RancherComposeBytes: []byte(stack.RancherCompose),
+		Url:       fmt.Sprintf("%s/projects/%s/schemas", url, stack.AccountId),
+		AccessKey: accessKey,
+		SecretKey: secretKey,
 	}
 
 	p, err := rancher.NewProject(&context)
