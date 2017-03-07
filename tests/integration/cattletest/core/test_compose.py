@@ -1423,79 +1423,6 @@ def test_up_relink(client, compose):
     assert consumed[0].name == 'web2'
 
 
-def test_service_upgrade_from_nil(client, compose):
-    template = '''
-    foo:
-        image: nginx
-    web2:
-        image: nginx
-    '''
-
-    project_name = create_project(compose, input=template)
-
-    upgrade = '''
-    foo:
-        image: nginx
-    web:
-        image: nginx
-    web2:
-        image: nginx
-    '''
-
-    compose.check_retcode(upgrade, 1, '-p', project_name, '-f',
-                          '-', 'upgrade', 'web', 'web2')
-
-
-def test_service_upgrade_no_global_on_src(client, compose):
-    template = '''
-    web:
-        image: nginx
-        labels:
-            io.rancher.scheduler.global: "true"
-    '''
-
-    project_name = create_project(compose, input=template)
-    project = find_one(client.list_stack, name=project_name)
-
-    assert len(project.services()) == 1
-
-    upgrade = '''
-    web2:
-        image: nginx
-    '''
-
-    out, err = compose.check_retcode(upgrade, 1, '-p', project_name, '-f',
-                                     '-', 'upgrade', 'web', 'web2',
-                                     stdout=subprocess.PIPE,
-                                     stderr=subprocess.PIPE)
-
-    assert out.find('Upgrade is not supported for global services')
-    assert len(project.services()) == 1
-
-
-def test_service_upgrade_no_global_on_dest(client, compose):
-    template = '''
-    web:
-        image: nginx
-    '''
-
-    project_name = create_project(compose, input=template)
-
-    upgrade = '''
-    web2:
-        image: nginx
-        labels:
-            io.rancher.scheduler.global: true
-    '''
-
-    out, err = compose.check_retcode(upgrade, 1, '-p', project_name, '-f',
-                                     '-', 'upgrade', 'web', 'web2',
-                                     stdout=subprocess.PIPE,
-                                     stderr=subprocess.PIPE)
-
-    assert out.find('Upgrade is not supported for global services')
-
-
 def test_service_map_syntax(client, compose):
     template = '''
     foo:
@@ -1573,42 +1500,6 @@ def test_up_deletes_links(client, compose):
     compose.check_call(template, '-f', '-', '-p', project_name, 'up', '-d')
     services = src.consumedservices()
     assert len(services) == 0
-
-
-def test_upgrade_no_source(client, compose):
-    project_name = random_str()
-    compose.check_retcode(None, 1, '-p', project_name, '-f',
-                          'assets/upgrade-ignore-scale/docker-compose.yml',
-                          'upgrade', '--interval', '1000',
-                          '--scale=2', 'from', 'to')
-
-    project = find_one(client.list_stack, name=project_name)
-    assert len(project.services()) == 0
-
-
-def test_upgrade_ignore_scale(client, compose):
-    project_name = create_project(compose, file='assets/upgrade-ignore-scale/'
-                                                'docker-compose-source.yml')
-    compose.check_call(None, '--verbose', '-f', 'assets/upgrade-ignore-scale/'
-                       'docker-compose-source.yml',
-                       '-p', project_name, 'up', '-d')
-    project = find_one(client.list_stack, name=project_name)
-    compose.check_call(None, '-p', project_name, '-f',
-                       'assets/upgrade-ignore-scale/docker-compose.yml',
-                       'upgrade', '--pull', '--interval', '1000',
-                       '--scale=2', 'from', 'to')
-
-    f = _get_service(project.services(), 'from')
-    to = _get_service(project.services(), 'to')
-
-    assert to.scale <= 2
-
-    f = client.wait_success(f)
-    to = client.wait_success(to)
-
-    assert f.scale == 0
-    assert to.scale == 2
-    assert to.state == 'active'
 
 
 def test_service_link_with_space(client, compose):

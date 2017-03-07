@@ -1,7 +1,6 @@
 package rancher
 
 import (
-	"errors"
 	"fmt"
 
 	"golang.org/x/net/context"
@@ -43,11 +42,6 @@ func (r *RancherContainer) Create(ctx context.Context, options options.Create) e
 	return nil
 }
 
-func (r *RancherContainer) Start(ctx context.Context) error {
-	fmt.Println(r.Name(), "Start")
-	return nil
-}
-
 func (r *RancherContainer) Up(ctx context.Context, options options.Up) error {
 	fmt.Println(r.Name(), "Up")
 	return nil
@@ -55,20 +49,6 @@ func (r *RancherContainer) Up(ctx context.Context, options options.Up) error {
 
 func (r *RancherContainer) Build(ctx context.Context, buildOptions options.Build) error {
 	fmt.Println(r.Name(), "Build")
-	return nil
-}
-
-func (r *RancherContainer) Delete(ctx context.Context, options options.Delete) error {
-	fmt.Println(r.Name(), "Delete")
-	return nil
-}
-
-func (r *RancherContainer) Scale(ctx context.Context, count int, timeout int) error {
-	return errors.New("Scale is not supported for containers")
-}
-
-func (r *RancherContainer) Restart(ctx context.Context, timeout int) error {
-	fmt.Println(r.Name(), "Restart")
 	return nil
 }
 

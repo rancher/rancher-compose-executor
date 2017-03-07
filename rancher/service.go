@@ -76,10 +76,6 @@ func (r *RancherService) Create(ctx context.Context, options options.Create) err
 	return err
 }
 
-func (r *RancherService) Start(ctx context.Context) error {
-	return r.up(false)
-}
-
 func (r *RancherService) Up(ctx context.Context, options options.Up) error {
 	return r.up(true)
 }
@@ -151,29 +147,6 @@ func (r *RancherService) up(create bool) error {
 	}
 
 	return err
-}
-
-func (r *RancherService) Delete(ctx context.Context, options options.Delete) error {
-	service, err := r.FindExisting(r.name)
-
-	if err == nil && service == nil {
-		return nil
-	}
-
-	if err != nil {
-		return err
-	}
-
-	if service.Removed != "" || service.State == "removing" || service.State == "removed" {
-		return nil
-	}
-
-	err = r.context.Client.Service.Delete(service)
-	if err != nil {
-		return err
-	}
-
-	return r.Wait(service)
 }
 
 func (r *RancherService) resolveServiceAndStackId(name string) (string, string, error) {
@@ -355,26 +328,6 @@ func (r *RancherService) getLinks() (map[Link]string, error) {
 	return result, nil
 }
 
-func (r *RancherService) Scale(ctx context.Context, count int, timeout int) error {
-	service, err := r.FindExisting(r.name)
-	if err != nil {
-		return err
-	}
-
-	if service == nil {
-		return fmt.Errorf("Failed to find %s to scale", r.name)
-	}
-
-	service, err = r.context.Client.Service.Update(service, map[string]interface{}{
-		"scale": count,
-	})
-	if err != nil {
-		return err
-	}
-
-	return r.Wait(service)
-}
-
 func (r *RancherService) containers() ([]client.Container, error) {
 	service, err := r.FindExisting(r.name)
 	if err != nil {
@@ -389,31 +342,6 @@ func (r *RancherService) containers() ([]client.Container, error) {
 	}
 
 	return instances.Data, nil
-}
-
-func (r *RancherService) Restart(ctx context.Context, timeout int) error {
-	service, err := r.FindExisting(r.name)
-	if err != nil {
-		return err
-	}
-
-	if service == nil {
-		return fmt.Errorf("Failed to find %s to restart", r.name)
-	}
-
-	service, err = r.context.Client.Service.ActionRestart(service, &client.ServiceRestart{
-		RollingRestartStrategy: client.RollingRestartStrategy{
-			BatchSize:      r.context.BatchSize,
-			IntervalMillis: r.context.Interval,
-		},
-	})
-
-	if err != nil {
-		logrus.Errorf("Failed to restart %s: %v", r.Name(), err)
-		return err
-	}
-
-	return r.Wait(service)
 }
 
 func (r *RancherService) Log(ctx context.Context, follow bool) error {
