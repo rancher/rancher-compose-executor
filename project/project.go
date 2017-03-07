@@ -38,7 +38,6 @@ type Project struct {
 	hosts        Hosts
 	context      *Context
 	reload       []string
-	upCount      int
 	listeners    []chan<- events.Event
 	hasListeners bool
 }
