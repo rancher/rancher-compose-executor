@@ -45,6 +45,12 @@ func CreateRawConfig(contents []byte) (*RawConfig, error) {
 	if rawConfig.Networks == nil {
 		rawConfig.Networks = make(map[string]interface{})
 	}
+	if rawConfig.Hosts == nil {
+		rawConfig.Hosts = make(map[string]interface{})
+	}
+	if rawConfig.Secrets == nil {
+		rawConfig.Secrets = make(map[string]interface{})
+	}
 
 	return &rawConfig, nil
 }
@@ -128,6 +134,7 @@ func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup
 
 	var volumes map[string]*VolumeConfig
 	var networks map[string]*NetworkConfig
+	var secrets map[string]*SecretConfig
 	var hosts map[string]*client.Host
 	if err := utils.Convert(rawConfig.Volumes, &volumes); err != nil {
 		return nil, err
@@ -143,12 +150,16 @@ func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup
 	if err := utils.Convert(rawConfig.Hosts, &hosts); err != nil {
 		return nil, err
 	}
+	if err := utils.Convert(rawConfig.Secrets, &secrets); err != nil {
+		return nil, err
+	}
 
 	return &Config{
 		Services:   serviceConfigs,
 		Containers: containerConfigs,
 		Volumes:    volumes,
 		Networks:   networks,
+		Secrets:    secrets,
 		Hosts:      hosts,
 	}, nil
 }

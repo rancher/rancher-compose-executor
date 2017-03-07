@@ -28,11 +28,13 @@ type Project struct {
 	ContainerConfigs *config.ServiceConfigs
 	VolumeConfigs    map[string]*config.VolumeConfig
 	NetworkConfigs   map[string]*config.NetworkConfig
+	SecretConfigs    map[string]*config.SecretConfig
 	HostConfigs      map[string]*client.Host
 	Files            []string
 	ReloadCallback   func() error
 
 	volumes      Volumes
+	secrets      Secrets
 	hosts        Hosts
 	context      *Context
 	reload       []string
@@ -49,6 +51,7 @@ func NewProject(context *Context) *Project {
 		ContainerConfigs: config.NewServiceConfigs(),
 		VolumeConfigs:    make(map[string]*config.VolumeConfig),
 		NetworkConfigs:   make(map[string]*config.NetworkConfig),
+		SecretConfigs:    make(map[string]*config.SecretConfig),
 		HostConfigs:      make(map[string]*client.Host),
 	}
 
@@ -188,11 +191,12 @@ func (p *Project) load(file string, bytes []byte) error {
 	for name, config := range config.Volumes {
 		p.VolumeConfigs[name] = config
 	}
-
 	for name, config := range config.Networks {
 		p.NetworkConfigs[name] = config
 	}
-
+	for name, config := range config.Secrets {
+		p.SecretConfigs[name] = config
+	}
 	for name, config := range config.Hosts {
 		p.HostConfigs[name] = config
 	}
@@ -203,6 +207,13 @@ func (p *Project) load(file string, bytes []byte) error {
 			return err
 		}
 		p.volumes = volumes
+	}
+	if p.context.SecretsFactory != nil {
+		secrets, err := p.context.SecretsFactory.Create(p.Name, p.SecretConfigs)
+		if err != nil {
+			return err
+		}
+		p.secrets = secrets
 	}
 	if p.context.HostsFactory != nil {
 		hosts, err := p.context.HostsFactory.Create(p.Name, p.HostConfigs)
@@ -218,6 +229,11 @@ func (p *Project) load(file string, bytes []byte) error {
 func (p *Project) initialize(ctx context.Context) error {
 	if p.volumes != nil {
 		if err := p.volumes.Initialize(ctx); err != nil {
+			return err
+		}
+	}
+	if p.secrets != nil {
+		if err := p.secrets.Initialize(ctx); err != nil {
 			return err
 		}
 	}

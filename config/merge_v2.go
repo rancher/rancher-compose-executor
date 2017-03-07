@@ -10,9 +10,10 @@ import (
 
 // MergeServicesV2 merges a v2 compose file into an existing set of service configs
 func MergeServicesV2(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup, resourceLookup ResourceLookup, file string, datas RawServiceMap) (map[string]*ServiceConfig, error) {
-	if err := validateV2(datas); err != nil {
+	// TODO: turn validation back on
+	/*if err := validateV2(datas); err != nil {
 		return nil, err
-	}
+	}*/
 
 	for name, data := range datas {
 		data, err := parseV2(resourceLookup, environmentLookup, file, data, datas)
@@ -100,9 +101,10 @@ func parseV2(resourceLookup ResourceLookup, environmentLookup EnvironmentLookup,
 			return nil, err
 		}
 
-		if err := validateV2(baseRawServices); err != nil {
+		// TODO: turn validation back on
+		/*if err := validateV2(baseRawServices); err != nil {
 			return nil, err
-		}
+		}*/
 
 		baseService, ok = baseRawServices[service]
 		if !ok {

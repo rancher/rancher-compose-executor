@@ -101,7 +101,12 @@ func createLaunchConfig(r *RancherService, name string, serviceConfig *config.Se
 	setupNetworking(serviceConfig.NetworkMode, &result)
 	setupVolumesFrom(serviceConfig.VolumesFrom, &result)
 
-	err = setupBuild(r, name, &result, serviceConfig)
+	if err = setupBuild(r, name, &result, serviceConfig); err != nil {
+		return result, err
+	}
+	if err = setupSecrets(r, name, &result, serviceConfig); err != nil {
+		return result, err
+	}
 
 	if result.Labels == nil {
 		result.Labels = map[string]interface{}{}
@@ -174,5 +179,29 @@ func setupBuild(r *RancherService, name string, result *client.LaunchConfig, ser
 		}
 	}
 
+	return nil
+}
+
+func setupSecrets(r *RancherService, name string, result *client.LaunchConfig, serviceConfig *config.ServiceConfig) error {
+	for _, secret := range r.serviceConfig.Secrets {
+		existingSecrets, err := r.Client().Secret.List(&client.ListOpts{
+			Filters: map[string]interface{}{
+				"name": secret.Source,
+			},
+		})
+		if err != nil {
+			return err
+		}
+		if len(existingSecrets.Data) == 0 {
+			return fmt.Errorf("Failed to find secret %s", secret.Source)
+		}
+		result.Secrets = append(result.Secrets, client.SecretReference{
+			SecretId: existingSecrets.Data[0].Id,
+			Name:     secret.Target,
+			Uid:      secret.Uid,
+			Gid:      secret.Gid,
+			Mode:     secret.Mode,
+		})
+	}
 	return nil
 }

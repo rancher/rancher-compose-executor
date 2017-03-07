@@ -22,6 +22,10 @@ func NewProject(context *Context) (*project.Project, error) {
 		Context: context,
 	}
 
+	context.SecretsFactory = &RancherSecretsFactory{
+		Context: context,
+	}
+
 	p := project.NewProject(&context.Context)
 
 	err := p.Parse()

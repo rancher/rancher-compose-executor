@@ -26,6 +26,7 @@ type Context struct {
 	ServiceFactory    ServiceFactory
 	ContainerFactory  ServiceFactory
 	VolumesFactory    VolumesFactory
+	SecretsFactory    SecretsFactory
 	HostsFactory      HostsFactory
 	EnvironmentLookup config.EnvironmentLookup
 	ResourceLookup    config.ResourceLookup
