@@ -23,13 +23,14 @@ type serviceAction func(service Service) error
 
 // Project holds libcompose project information.
 type Project struct {
-	Name           string
-	ServiceConfigs *config.ServiceConfigs
-	VolumeConfigs  map[string]*config.VolumeConfig
-	NetworkConfigs map[string]*config.NetworkConfig
-	HostConfigs    map[string]*client.Host
-	Files          []string
-	ReloadCallback func() error
+	Name             string
+	ServiceConfigs   *config.ServiceConfigs
+	ContainerConfigs *config.ServiceConfigs
+	VolumeConfigs    map[string]*config.VolumeConfig
+	NetworkConfigs   map[string]*config.NetworkConfig
+	HostConfigs      map[string]*client.Host
+	Files            []string
+	ReloadCallback   func() error
 
 	volumes      Volumes
 	hosts        Hosts
@@ -43,11 +44,12 @@ type Project struct {
 // NewProject creates a new project with the specified context.
 func NewProject(context *Context) *Project {
 	p := &Project{
-		context:        context,
-		ServiceConfigs: config.NewServiceConfigs(),
-		VolumeConfigs:  make(map[string]*config.VolumeConfig),
-		NetworkConfigs: make(map[string]*config.NetworkConfig),
-		HostConfigs:    make(map[string]*client.Host),
+		context:          context,
+		ServiceConfigs:   config.NewServiceConfigs(),
+		ContainerConfigs: config.NewServiceConfigs(),
+		VolumeConfigs:    make(map[string]*config.VolumeConfig),
+		NetworkConfigs:   make(map[string]*config.NetworkConfig),
+		HostConfigs:      make(map[string]*client.Host),
 	}
 
 	if context.LoggerFactory == nil {
@@ -112,17 +114,21 @@ func (p *Project) Parse() error {
 	return nil
 }
 
-// CreateService creates a service with the specified name based. If there
-// is no config in the project for this service, it will return an error.
 func (p *Project) CreateService(name string) (Service, error) {
+	factory := p.context.ServiceFactory
 	existing, ok := p.ServiceConfigs.Get(name)
 	if !ok {
-		return nil, fmt.Errorf("Failed to find service: %s", name)
+		factory = p.context.ContainerFactory
+		existing, ok = p.ContainerConfigs.Get(name)
+		if !ok {
+			return nil, fmt.Errorf("Failed to find service or container: %s", name)
+		}
 	}
 
 	// Copy because we are about to modify the environment
 	config := *existing
 
+	// TODO: perform this transformation in config package
 	if p.context.EnvironmentLookup != nil {
 		parsedEnv := make([]string, 0, len(config.Environment))
 
@@ -160,7 +166,7 @@ func (p *Project) CreateService(name string) (Service, error) {
 		}
 	}
 
-	return p.context.ServiceFactory.Create(p, name, &config)
+	return factory.Create(p, name, &config)
 }
 
 func (p *Project) load(file string, bytes []byte) error {
@@ -172,6 +178,10 @@ func (p *Project) load(file string, bytes []byte) error {
 
 	for name, config := range config.Services {
 		p.ServiceConfigs.Add(name, config)
+		p.reload = append(p.reload, name)
+	}
+	for name, config := range config.Containers {
+		p.ContainerConfigs.Add(name, config)
 		p.reload = append(p.reload, name)
 	}
 
@@ -312,6 +322,9 @@ func (p *Project) traverse(start bool, selected map[string]bool, wrappers map[st
 
 	if start {
 		for _, name := range p.ServiceConfigs.Keys() {
+			wrapperList = append(wrapperList, name)
+		}
+		for _, name := range p.ContainerConfigs.Keys() {
 			wrapperList = append(wrapperList, name)
 		}
 	} else {

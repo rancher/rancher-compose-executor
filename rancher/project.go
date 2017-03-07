@@ -10,6 +10,10 @@ func NewProject(context *Context) (*project.Project, error) {
 		Context: context,
 	}
 
+	context.ContainerFactory = &RancherContainerFactory{
+		Context: context,
+	}
+
 	context.VolumesFactory = &RancherVolumesFactory{
 		Context: context,
 	}

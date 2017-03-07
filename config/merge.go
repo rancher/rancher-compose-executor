@@ -49,6 +49,7 @@ func CreateRawConfig(contents []byte) (*RawConfig, error) {
 	return &rawConfig, nil
 }
 
+// TODO: get rid of existingServices
 // Merge merges a compose file into an existing set of service configs
 func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup, resourceLookup ResourceLookup, file string, contents []byte) (*Config, error) {
 	var err error
@@ -62,8 +63,13 @@ func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup
 		return nil, err
 	}
 	baseRawServices := rawConfig.Services
+	baseRawContainers := rawConfig.Containers
 
+	// TODO: just interpolate at the map level earlier
 	if err := InterpolateRawServiceMap(&baseRawServices, environmentLookup); err != nil {
+		return nil, err
+	}
+	if err := InterpolateRawServiceMap(&baseRawContainers, environmentLookup); err != nil {
 		return nil, err
 	}
 
@@ -82,6 +88,10 @@ func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup
 	}
 
 	baseRawServices, err = PreprocessServiceMap(baseRawServices)
+	if err != nil {
+		return nil, err
+	}
+	baseRawContainers, err = PreprocessServiceMap(baseRawContainers)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +114,17 @@ func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup
 		}
 	}
 
+	var containerConfigs map[string]*ServiceConfig
+	if rawConfig.Version == "2" {
+		var err error
+		containerConfigs, err = MergeServicesV2(existingServices, environmentLookup, resourceLookup, file, baseRawContainers)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	adjustValues(serviceConfigs)
+	adjustValues(containerConfigs)
 
 	var volumes map[string]*VolumeConfig
 	var networks map[string]*NetworkConfig
@@ -125,10 +145,11 @@ func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup
 	}
 
 	return &Config{
-		Services: serviceConfigs,
-		Volumes:  volumes,
-		Networks: networks,
-		Hosts:    hosts,
+		Services:   serviceConfigs,
+		Containers: containerConfigs,
+		Volumes:    volumes,
+		Networks:   networks,
+		Hosts:      hosts,
 	}, nil
 }
 

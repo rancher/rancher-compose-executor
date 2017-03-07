@@ -100,7 +100,7 @@ func parseV2(resourceLookup ResourceLookup, environmentLookup EnvironmentLookup,
 			return nil, err
 		}
 
-		if err := validate(baseRawServices); err != nil {
+		if err := validateV2(baseRawServices); err != nil {
 			return nil, err
 		}
 
