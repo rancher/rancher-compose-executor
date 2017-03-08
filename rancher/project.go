@@ -14,6 +14,10 @@ func NewProject(context *Context) (*project.Project, error) {
 		Context: context,
 	}
 
+	context.DependenciesFactory = &RancherDependenciesFactory{
+		Context: context,
+	}
+
 	context.VolumesFactory = &RancherVolumesFactory{
 		Context: context,
 	}

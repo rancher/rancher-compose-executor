@@ -9,6 +9,7 @@ import (
 	"github.com/docker/docker/pkg/urlutil"
 	"github.com/docker/libcompose/utils"
 	composeYaml "github.com/docker/libcompose/yaml"
+	"github.com/fatih/structs"
 	"github.com/rancher/go-rancher/v2"
 	"github.com/rancher/rancher-compose-executor/template"
 	"gopkg.in/yaml.v2"
@@ -20,6 +21,19 @@ var (
 		"volumes_from",
 	}
 )
+
+func transferFields(from, to RawService, prefixField string, instance interface{}) {
+	s := structs.New(instance)
+	for _, f := range s.Fields() {
+		field := strings.SplitN(f.Tag("yaml"), ",", 2)[0]
+		if fieldValue, ok := from[field]; ok {
+			if _, ok = to[prefixField]; !ok {
+				to[prefixField] = map[string]interface{}{}
+			}
+			to[prefixField].(map[string]interface{})[field] = fieldValue
+		}
+	}
+}
 
 // CreateRawConfig unmarshals contents to config and creates config based on version
 func CreateRawConfig(contents []byte) (*RawConfig, error) {
@@ -37,6 +51,23 @@ func CreateRawConfig(contents []byte) (*RawConfig, error) {
 			delete(baseRawServices, ".catalog")
 		}
 		rawConfig.Services = baseRawServices
+	}
+
+	// Merge other service types into primary service map
+	for name, baseRawLoadBalancer := range rawConfig.LoadBalancers {
+		rawConfig.Services[name] = baseRawLoadBalancer
+		transferFields(baseRawLoadBalancer, rawConfig.Services[name], "lb_config", LBConfig{})
+	}
+	for name, baseRawVolumeDriver := range rawConfig.VolumeDrivers {
+		rawConfig.Services[name] = baseRawVolumeDriver
+		transferFields(baseRawVolumeDriver, rawConfig.Services[name], "storage_driver", client.StorageDriver{})
+	}
+	for name, baseRawNetworkDriver := range rawConfig.NetworkDrivers {
+		rawConfig.Services[name] = baseRawNetworkDriver
+		transferFields(baseRawNetworkDriver, rawConfig.Services[name], "network_driver", client.NetworkDriver{})
+	}
+	for name, baseRawVirtualMachine := range rawConfig.VirtualMachines {
+		rawConfig.Services[name] = baseRawVirtualMachine
 	}
 
 	if rawConfig.Volumes == nil {
@@ -68,6 +99,7 @@ func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup
 	if err != nil {
 		return nil, err
 	}
+
 	baseRawServices := rawConfig.Services
 	baseRawContainers := rawConfig.Containers
 
@@ -132,10 +164,14 @@ func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup
 	adjustValues(serviceConfigs)
 	adjustValues(containerConfigs)
 
+	var dependencies map[string]*DependencyConfig
 	var volumes map[string]*VolumeConfig
 	var networks map[string]*NetworkConfig
 	var secrets map[string]*SecretConfig
 	var hosts map[string]*client.Host
+	if err := utils.Convert(rawConfig.Dependencies, &dependencies); err != nil {
+		return nil, err
+	}
 	if err := utils.Convert(rawConfig.Volumes, &volumes); err != nil {
 		return nil, err
 	}
@@ -155,12 +191,13 @@ func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup
 	}
 
 	return &Config{
-		Services:   serviceConfigs,
-		Containers: containerConfigs,
-		Volumes:    volumes,
-		Networks:   networks,
-		Secrets:    secrets,
-		Hosts:      hosts,
+		Services:     serviceConfigs,
+		Containers:   containerConfigs,
+		Dependencies: dependencies,
+		Volumes:      volumes,
+		Networks:     networks,
+		Secrets:      secrets,
+		Hosts:        hosts,
 	}, nil
 }
 

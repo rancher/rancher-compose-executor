@@ -19,19 +19,20 @@ var projectRegexp = regexp.MustCompile("[^a-zA-Z0-9_.-]")
 // Context holds context meta information about a libcompose project, like
 // the project name, the compose file, etc.
 type Context struct {
-	ComposeFiles      []string
-	ComposeBytes      [][]byte
-	ProjectName       string
-	isOpen            bool
-	ServiceFactory    ServiceFactory
-	ContainerFactory  ServiceFactory
-	VolumesFactory    VolumesFactory
-	SecretsFactory    SecretsFactory
-	HostsFactory      HostsFactory
-	EnvironmentLookup config.EnvironmentLookup
-	ResourceLookup    config.ResourceLookup
-	LoggerFactory     logger.Factory
-	Project           *Project
+	ComposeFiles        []string
+	ComposeBytes        [][]byte
+	ProjectName         string
+	isOpen              bool
+	ServiceFactory      ServiceFactory
+	ContainerFactory    ServiceFactory
+	DependenciesFactory DependenciesFactory
+	VolumesFactory      VolumesFactory
+	SecretsFactory      SecretsFactory
+	HostsFactory        HostsFactory
+	EnvironmentLookup   config.EnvironmentLookup
+	ResourceLookup      config.ResourceLookup
+	LoggerFactory       logger.Factory
+	Project             *Project
 }
 
 func (c *Context) readComposeFiles() error {

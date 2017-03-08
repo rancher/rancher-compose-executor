@@ -287,6 +287,13 @@ type SecretConfig struct {
 	External string `yaml:"external,omitempty"`
 }
 
+type DependencyConfig struct {
+	Name     string `yaml:"name,omitempty"`
+	Template string `yaml:"template,omitempty"`
+	Version  string `yaml:"version,omitempty"`
+	// TODO: additional answers/environment?
+}
+
 type RawConfig struct {
 	Version string `yaml:"version,omitempty"`
 
@@ -297,10 +304,11 @@ type RawConfig struct {
 	NetworkDrivers  RawServiceMap `yaml:"network_drivers,omitempty"`
 	VirtualMachines RawServiceMap `yaml:"virtual_machines,omitempty"`
 
-	Volumes  map[string]interface{} `yaml:"volumes,omitempty"`
-	Networks map[string]interface{} `yaml:"networks,omitempty"`
-	Secrets  map[string]interface{} `yaml:"secrets,omitempty"`
-	Hosts    map[string]interface{} `yaml:"hosts,omitempty"`
+	Dependencies map[string]interface{} `yaml:"dependencies,omitempty"`
+	Volumes      map[string]interface{} `yaml:"volumes,omitempty"`
+	Networks     map[string]interface{} `yaml:"networks,omitempty"`
+	Secrets      map[string]interface{} `yaml:"secrets,omitempty"`
+	Hosts        map[string]interface{} `yaml:"hosts,omitempty"`
 }
 
 type Config struct {
@@ -311,10 +319,11 @@ type Config struct {
 	NetworkDrivers  map[string]*ServiceConfig `yaml:"network_drivers,omitempty"`
 	VirtualMachines map[string]*ServiceConfig `yaml:"virtual_machines,omitempty"`
 
-	Volumes  map[string]*VolumeConfig  `yaml:"volumes,omitempty"`
-	Networks map[string]*NetworkConfig `yaml:"networks,omitempty"`
-	Secrets  map[string]*SecretConfig  `yaml:"secrets,omitempty"`
-	Hosts    map[string]*client.Host   `yaml:"hosts,omitempty"`
+	Dependencies map[string]*DependencyConfig `yaml:"dependencies,omitempty"`
+	Volumes      map[string]*VolumeConfig     `yaml:"volumes,omitempty"`
+	Networks     map[string]*NetworkConfig    `yaml:"networks,omitempty"`
+	Secrets      map[string]*SecretConfig     `yaml:"secrets,omitempty"`
+	Hosts        map[string]*client.Host      `yaml:"hosts,omitempty"`
 }
 
 // NewServiceConfigs initializes a new Configs struct
