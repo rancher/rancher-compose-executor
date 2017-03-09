@@ -205,9 +205,14 @@ func (r *RancherService) Metadata() map[string]interface{} {
 	return rUtils.NestedMapsToMapInterface(r.serviceConfig.Metadata)
 }
 
-// TODO: is this still needed?
 func (r *RancherService) HealthCheck(service string) *client.InstanceHealthCheck {
-	return r.serviceConfig.HealthCheck
+	if service == "" {
+		service = r.name
+	}
+	if config, ok := r.context.Project.ServiceConfigs.Get(service); ok {
+		return config.HealthCheck
+	}
+	return nil
 }
 
 func (r *RancherService) getConfiguredScale() int {
@@ -238,8 +243,7 @@ func (r *RancherService) createService() (*client.Service, error) {
 		return nil, err
 	}
 
-	err = r.Wait(service)
-	return service, err
+	return service, r.Wait(service)
 }
 
 func (r *RancherService) setupLinks(service *client.Service, update bool) error {
