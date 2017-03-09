@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+
+	"github.com/rancher/rancher-compose-executor/config"
 )
 
 func TestGenerateHAProxyConf(t *testing.T) {
@@ -52,7 +54,7 @@ func TestRewritePorts(t *testing.T) {
 	testRewritePorts(t, "80:80/tcp", "80/tcp")
 }
 
-func testConvertLb(t *testing.T, ports, links, externalLinks []string, selector string, expectedPortRules []PortRule) {
+func testConvertLb(t *testing.T, ports, links, externalLinks []string, selector string, expectedPortRules []config.PortRule) {
 	portRules, err := convertLb(ports, links, externalLinks, selector)
 	if err != nil {
 		t.Fatal(err)
@@ -67,7 +69,7 @@ func testConvertLb(t *testing.T, ports, links, externalLinks []string, selector 
 func TestConvertLb(t *testing.T) {
 	testConvertLb(t, []string{
 		"8080:80",
-	}, []string{"web1", "web2"}, []string{"external/web3"}, "", []PortRule{
+	}, []string{"web1", "web2"}, []string{"external/web3"}, "", []config.PortRule{
 		{
 			SourcePort: 8080,
 			TargetPort: 80,
@@ -90,7 +92,7 @@ func TestConvertLb(t *testing.T) {
 
 	testConvertLb(t, []string{
 		"80",
-	}, []string{"web1", "web2"}, []string{}, "", []PortRule{
+	}, []string{"web1", "web2"}, []string{}, "", []config.PortRule{
 		{
 			SourcePort: 80,
 			TargetPort: 80,
@@ -107,7 +109,7 @@ func TestConvertLb(t *testing.T) {
 
 	testConvertLb(t, []string{
 		"80/tcp",
-	}, []string{"web1", "web2"}, []string{}, "", []PortRule{
+	}, []string{"web1", "web2"}, []string{}, "", []config.PortRule{
 		{
 			SourcePort: 80,
 			TargetPort: 80,
@@ -124,7 +126,7 @@ func TestConvertLb(t *testing.T) {
 
 	testConvertLb(t, []string{
 		"80/tcp",
-	}, nil, nil, "foo=bar", []PortRule{
+	}, nil, nil, "foo=bar", []config.PortRule{
 		{
 			SourcePort: 80,
 			TargetPort: 80,
@@ -134,7 +136,7 @@ func TestConvertLb(t *testing.T) {
 	})
 }
 
-func testConvertLabel(t *testing.T, label string, expectedPortRules []PortRule) {
+func testConvertLabel(t *testing.T, label string, expectedPortRules []config.PortRule) {
 	portRules, err := convertLbLabel(label)
 	if err != nil {
 		t.Fail()
@@ -146,7 +148,7 @@ func testConvertLabel(t *testing.T, label string, expectedPortRules []PortRule) 
 }
 
 func TestConvertLabel(t *testing.T) {
-	testConvertLabel(t, "example2.com:80/path=81", []PortRule{
+	testConvertLabel(t, "example2.com:80/path=81", []config.PortRule{
 		{
 			Hostname:   "example2.com",
 			SourcePort: 80,
@@ -154,104 +156,104 @@ func TestConvertLabel(t *testing.T) {
 			TargetPort: 81,
 		},
 	})
-	testConvertLabel(t, "example2.com:80/path/a", []PortRule{
+	testConvertLabel(t, "example2.com:80/path/a", []config.PortRule{
 		{
 			Hostname:   "example2.com",
 			SourcePort: 80,
 			Path:       "/path/a",
 		},
 	})
-	testConvertLabel(t, "example2.com:80=81", []PortRule{
+	testConvertLabel(t, "example2.com:80=81", []config.PortRule{
 		{
 			Hostname:   "example2.com",
 			SourcePort: 80,
 			TargetPort: 81,
 		},
 	})
-	testConvertLabel(t, "example2.com:80", []PortRule{
+	testConvertLabel(t, "example2.com:80", []config.PortRule{
 		{
 			Hostname:   "example2.com",
 			SourcePort: 80,
 		},
 	})
-	testConvertLabel(t, "example2.com/path/b/c=81", []PortRule{
+	testConvertLabel(t, "example2.com/path/b/c=81", []config.PortRule{
 		{
 			Hostname:   "example2.com",
 			Path:       "/path/b/c",
 			TargetPort: 81,
 		},
 	})
-	testConvertLabel(t, "example2.com/path", []PortRule{
+	testConvertLabel(t, "example2.com/path", []config.PortRule{
 		{
 			Hostname: "example2.com",
 			Path:     "/path",
 		},
 	})
-	testConvertLabel(t, "example2.com=81", []PortRule{
+	testConvertLabel(t, "example2.com=81", []config.PortRule{
 		{
 			Hostname:   "example2.com",
 			TargetPort: 81,
 		},
 	})
-	testConvertLabel(t, "example2.com", []PortRule{
+	testConvertLabel(t, "example2.com", []config.PortRule{
 		{
 			Hostname: "example2.com",
 		},
 	})
 
-	testConvertLabel(t, "80/path=81", []PortRule{
+	testConvertLabel(t, "80/path=81", []config.PortRule{
 		{
 			SourcePort: 80,
 			Path:       "/path",
 			TargetPort: 81,
 		},
 	})
-	testConvertLabel(t, "80/path", []PortRule{
+	testConvertLabel(t, "80/path", []config.PortRule{
 		{
 			SourcePort: 80,
 			Path:       "/path",
 		},
 	})
-	testConvertLabel(t, "80=81", []PortRule{
+	testConvertLabel(t, "80=81", []config.PortRule{
 		{
 			SourcePort: 80,
 			TargetPort: 81,
 		},
 	})
-	testConvertLabel(t, "/path=81", []PortRule{
+	testConvertLabel(t, "/path=81", []config.PortRule{
 		{
 			Path:       "/path",
 			TargetPort: 81,
 		},
 	})
-	testConvertLabel(t, "www.abc.com", []PortRule{
+	testConvertLabel(t, "www.abc.com", []config.PortRule{
 		{
 			Hostname: "www.abc.com",
 		},
 	})
-	testConvertLabel(t, "www.abc2.com", []PortRule{
+	testConvertLabel(t, "www.abc2.com", []config.PortRule{
 		{
 			Hostname: "www.abc2.com",
 		},
 	})
-	testConvertLabel(t, "/path", []PortRule{
+	testConvertLabel(t, "/path", []config.PortRule{
 		{
 			Path: "/path",
 		},
 	})
-	testConvertLabel(t, "www.abc2.com/service.html", []PortRule{
+	testConvertLabel(t, "www.abc2.com/service.html", []config.PortRule{
 		{
 			Hostname: "www.abc2.com",
 			Path:     "/service.html",
 		},
 	})
-	testConvertLabel(t, "81", []PortRule{
+	testConvertLabel(t, "81", []config.PortRule{
 		{
 			TargetPort: 81,
 		},
 	})
 
-	testConvertLabel(t, "81,82", []PortRule{
+	testConvertLabel(t, "81,82", []config.PortRule{
 		{
 			TargetPort: 81,
 		},
@@ -259,7 +261,7 @@ func TestConvertLabel(t *testing.T) {
 			TargetPort: 82,
 		},
 	})
-	testConvertLabel(t, "example2.com:80/path=81,example2.com:82/path2=83", []PortRule{
+	testConvertLabel(t, "example2.com:80/path=81,example2.com:82/path2=83", []config.PortRule{
 		{
 			Hostname:   "example2.com",
 			SourcePort: 80,
@@ -275,7 +277,7 @@ func TestConvertLabel(t *testing.T) {
 	})
 }
 
-func testMergePortRules(t *testing.T, baseRules, overrideRules, expectedPortRules []PortRule) {
+func testMergePortRules(t *testing.T, baseRules, overrideRules, expectedPortRules []config.PortRule) {
 	portRules := mergePortRules(baseRules, overrideRules)
 	if !reflect.DeepEqual(portRules, expectedPortRules) {
 		fmt.Println(portRules, expectedPortRules)
@@ -284,19 +286,19 @@ func testMergePortRules(t *testing.T, baseRules, overrideRules, expectedPortRule
 }
 
 func TestMergePortRules(t *testing.T) {
-	testMergePortRules(t, []PortRule{
+	testMergePortRules(t, []config.PortRule{
 		{
 			Service:    "web",
 			SourcePort: 80,
 			TargetPort: 80,
 		},
-	}, []PortRule{
+	}, []config.PortRule{
 		{
 			Service:    "web",
 			SourcePort: 80,
 			TargetPort: 81,
 		},
-	}, []PortRule{
+	}, []config.PortRule{
 		{
 			Service:    "web",
 			SourcePort: 80,
@@ -304,19 +306,19 @@ func TestMergePortRules(t *testing.T) {
 		},
 	})
 
-	testMergePortRules(t, []PortRule{
+	testMergePortRules(t, []config.PortRule{
 		{
 			Service:    "web",
 			SourcePort: 80,
 			TargetPort: 80,
 		},
-	}, []PortRule{
+	}, []config.PortRule{
 		{
 			Service:    "web",
 			Path:       "/path",
 			SourcePort: 80,
 		},
-	}, []PortRule{
+	}, []config.PortRule{
 		{
 			Service:    "web",
 			Path:       "/path",
@@ -325,7 +327,7 @@ func TestMergePortRules(t *testing.T) {
 		},
 	})
 
-	testMergePortRules(t, []PortRule{
+	testMergePortRules(t, []config.PortRule{
 		{
 			Service:    "web",
 			SourcePort: 80,
@@ -336,12 +338,12 @@ func TestMergePortRules(t *testing.T) {
 			SourcePort: 81,
 			TargetPort: 81,
 		},
-	}, []PortRule{
+	}, []config.PortRule{
 		{
 			Service: "web",
 			Path:    "/path",
 		},
-	}, []PortRule{
+	}, []config.PortRule{
 		{
 			Service:    "web",
 			Path:       "/path",
@@ -356,7 +358,7 @@ func TestMergePortRules(t *testing.T) {
 		},
 	})
 
-	testMergePortRules(t, []PortRule{
+	testMergePortRules(t, []config.PortRule{
 		{
 			Service:    "web",
 			SourcePort: 80,
@@ -367,14 +369,14 @@ func TestMergePortRules(t *testing.T) {
 			SourcePort: 81,
 			TargetPort: 81,
 		},
-	}, []PortRule{
+	}, []config.PortRule{
 		{
 			Service:    "web",
 			TargetPort: 90,
 			Hostname:   "www.example2.com",
 			Path:       "/path",
 		},
-	}, []PortRule{
+	}, []config.PortRule{
 		{
 			Service:    "web",
 			Hostname:   "www.example2.com",
@@ -391,13 +393,13 @@ func TestMergePortRules(t *testing.T) {
 		},
 	})
 
-	testMergePortRules(t, []PortRule{
+	testMergePortRules(t, []config.PortRule{
 		{
 			Service:    "web",
 			SourcePort: 80,
 			TargetPort: 80,
 		},
-	}, []PortRule{
+	}, []config.PortRule{
 		{
 			Service:  "web",
 			Hostname: "www.example1.com",
@@ -408,7 +410,7 @@ func TestMergePortRules(t *testing.T) {
 			Hostname: "www.example2.com",
 			Path:     "/path2",
 		},
-	}, []PortRule{
+	}, []config.PortRule{
 		{
 			Service:    "web",
 			Hostname:   "www.example1.com",
@@ -425,7 +427,7 @@ func TestMergePortRules(t *testing.T) {
 		},
 	})
 
-	testMergePortRules(t, []PortRule{
+	testMergePortRules(t, []config.PortRule{
 		{
 			Service:    "web",
 			SourcePort: 80,
@@ -441,7 +443,7 @@ func TestMergePortRules(t *testing.T) {
 			SourcePort: 80,
 			TargetPort: 80,
 		},
-	}, []PortRule{
+	}, []config.PortRule{
 		{
 			Service:  "web",
 			Hostname: "www.example1.com",
@@ -456,7 +458,7 @@ func TestMergePortRules(t *testing.T) {
 			Service:    "web3",
 			TargetPort: 90,
 		},
-	}, []PortRule{
+	}, []config.PortRule{
 		{
 			Service:    "web",
 			Hostname:   "www.example1.com",
