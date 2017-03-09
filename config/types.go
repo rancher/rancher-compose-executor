@@ -69,7 +69,7 @@ type ServiceConfigV1 struct {
 	Privileged        bool                 `yaml:"privileged,omitempty"`
 	Restart           string               `yaml:"restart,omitempty"`
 	ReadOnly          bool                 `yaml:"read_only,omitempty"`
-	Secrets           []SecretReference    `yaml:"secrets,omitempty"`
+	Secrets           SecretReferences     `yaml:"secrets,omitempty"`
 	ShmSize           yaml.StringorInt     `yaml:"shm_size,omitempty"`
 	StdinOpen         bool                 `yaml:"stdin_open,omitempty"`
 	SecurityOpt       []string             `yaml:"security_opt,omitempty"`
@@ -117,14 +117,6 @@ type ServiceConfigV1 struct {
 type Log struct {
 	Driver  string            `yaml:"driver,omitempty"`
 	Options map[string]string `yaml:"options,omitempty"`
-}
-
-type SecretReference struct {
-	Source string `yaml:"source,omitempty"`
-	Target string `yaml:"target,omitempty"`
-	Uid    string `yaml:"uid,omitempty"`
-	Gid    string `yaml:"gid,omitempty"`
-	Mode   string `yaml:"mode,omitempty"`
 }
 
 // ServiceConfig holds version 2 of libcompose service configuration
@@ -178,7 +170,7 @@ type ServiceConfig struct {
 	Pid               string               `yaml:"pid,omitempty"`
 	Ports             []string             `yaml:"ports,omitempty"`
 	Privileged        bool                 `yaml:"privileged,omitempty"`
-	Secrets           []SecretReference    `yaml:"secrets,omitempty"`
+	Secrets           SecretReferences     `yaml:"secrets,omitempty"`
 	SecurityOpt       []string             `yaml:"security_opt,omitempty"`
 	ShmSize           yaml.StringorInt     `yaml:"shm_size,omitempty"`
 	StopSignal        string               `yaml:"stop_signal,omitempty"`
