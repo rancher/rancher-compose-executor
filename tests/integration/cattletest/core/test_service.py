@@ -312,76 +312,76 @@ two:
 
 
 def test_storage_driver(client):
-    name = 'project-' + random_str()
     template_legacy = '''
 version: '2'
 services:
-  test_driver:
+  legacy-driver:
     image: nginx
     storage_driver:
-      name: rancher-efs
+      name: legacy-driver
       scope: environment
       volume_access_mode: multiHostRW
 '''
     template = '''
 version: '2'
 storage_drivers:
-  test_driver:
+  driver:
     image: nginx
-    name: rancher-efs
+    name: driver
     scope: environment
     volume_access_mode: multiHostRW
 '''
 
     for template in (template_legacy, template):
+        name = 'project-' + random_str()
         env = client.create_stack(name=name, dockerCompose=template)
         env = client.wait_success(env)
         env = client.wait_success(env.activateservices())
         assert env.state == 'active'
-        assert len(env.services) > 1
-        for s in env.services():
-            s = client.wait_success(s)
-            assert s.state == 'active'
-            assert s.type == 'storageDriverService'
-            assert s.storageDriver.name == 'rancher-efs'
-            assert s.storageDriver.volumeAccessMode == 'multiHostRW'
-            assert s.storageDriver.scope == 'environment'
+
+        services = env.services()
+        assert len(services) == 1
+        s = client.wait_success(services[0])
+        assert s.state == 'active'
+        assert s.type == 'storageDriverService'
+        assert s.storageDriver.volumeAccessMode == 'multiHostRW'
+        assert s.storageDriver.scope == 'environment'
 
 
 def test_network_driver(client):
-    name = 'project-' + random_str()
     template_legacy = '''
 version: '2'
 services:
-  test_driver:
+  legacy-driver:
+    image: nginx
     network_driver:
-      image: nginx
-      name: Rancher VXLAN
+      name: legacy-driver
       default_network:
         name: vxlan
 '''
     template = '''
 version: '2'
 network_drivers:
-  test_driver:
+  driver:
     image: nginx
-    name: Rancher VXLAN
+    name: driver
     default_network:
       name: vxlan
 '''
 
     for template in (template_legacy, template):
+        name = 'project-' + random_str()
         env = client.create_stack(name=name, dockerCompose=template)
         env = client.wait_success(env)
         env = client.wait_success(env.activateservices())
         assert env.state == 'active'
-        assert len(env.services) > 1
-        for s in env.services():
-            s = client.wait_success(s)
-            assert s.state == 'active'
-            assert s.type == 'networkDriverService'
-            assert s.networkDriver.name == 'Rancher VXLAN'
-            assert s.networkDriver.defaultNetwork.name == 'vxlan'
+
+        services = env.services()
+        assert len(services) == 1
+        s = client.wait_success(services[0])
+        assert s.state == 'active'
+        assert s.type == 'networkDriverService'
+        assert s.networkDriver.defaultNetwork.name == 'vxlan'
 
 
 def _base():
