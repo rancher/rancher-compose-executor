@@ -53,23 +53,9 @@ func CreateRawConfig(contents []byte) (*RawConfig, error) {
 		rawConfig.Services = baseRawServices
 	}
 
-	// Merge other service types into primary service map
-	for name, baseRawLoadBalancer := range rawConfig.LoadBalancers {
-		rawConfig.Services[name] = baseRawLoadBalancer
-		transferFields(baseRawLoadBalancer, rawConfig.Services[name], "lb_config", LBConfig{})
+	if rawConfig.Services == nil {
+		rawConfig.Services = make(RawServiceMap)
 	}
-	for name, baseRawVolumeDriver := range rawConfig.VolumeDrivers {
-		rawConfig.Services[name] = baseRawVolumeDriver
-		transferFields(baseRawVolumeDriver, rawConfig.Services[name], "storage_driver", client.StorageDriver{})
-	}
-	for name, baseRawNetworkDriver := range rawConfig.NetworkDrivers {
-		rawConfig.Services[name] = baseRawNetworkDriver
-		transferFields(baseRawNetworkDriver, rawConfig.Services[name], "network_driver", client.NetworkDriver{})
-	}
-	for name, baseRawVirtualMachine := range rawConfig.VirtualMachines {
-		rawConfig.Services[name] = baseRawVirtualMachine
-	}
-
 	if rawConfig.Volumes == nil {
 		rawConfig.Volumes = make(map[string]interface{})
 	}
@@ -81,6 +67,23 @@ func CreateRawConfig(contents []byte) (*RawConfig, error) {
 	}
 	if rawConfig.Secrets == nil {
 		rawConfig.Secrets = make(map[string]interface{})
+	}
+
+	// Merge other service types into primary service map
+	for name, baseRawLoadBalancer := range rawConfig.LoadBalancers {
+		rawConfig.Services[name] = baseRawLoadBalancer
+		transferFields(baseRawLoadBalancer, rawConfig.Services[name], "lb_config", LBConfig{})
+	}
+	for name, baseRawStorageDriver := range rawConfig.StorageDrivers {
+		rawConfig.Services[name] = baseRawStorageDriver
+		transferFields(baseRawStorageDriver, rawConfig.Services[name], "storage_driver", client.StorageDriver{})
+	}
+	for name, baseRawNetworkDriver := range rawConfig.NetworkDrivers {
+		rawConfig.Services[name] = baseRawNetworkDriver
+		transferFields(baseRawNetworkDriver, rawConfig.Services[name], "network_driver", client.NetworkDriver{})
+	}
+	for name, baseRawVirtualMachine := range rawConfig.VirtualMachines {
+		rawConfig.Services[name] = baseRawVirtualMachine
 	}
 
 	return &rawConfig, nil

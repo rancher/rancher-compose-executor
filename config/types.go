@@ -292,7 +292,7 @@ type RawConfig struct {
 	Services        RawServiceMap `yaml:"services,omitempty"`
 	Containers      RawServiceMap `yaml:"containers,omitempty"`
 	LoadBalancers   RawServiceMap `yaml:"load_balancers,omitempty"`
-	VolumeDrivers   RawServiceMap `yaml:"volume_drivers,omitempty"`
+	StorageDrivers  RawServiceMap `yaml:"storage_drivers,omitempty"`
 	NetworkDrivers  RawServiceMap `yaml:"network_drivers,omitempty"`
 	VirtualMachines RawServiceMap `yaml:"virtual_machines,omitempty"`
 
@@ -307,7 +307,7 @@ type Config struct {
 	Services        map[string]*ServiceConfig `yaml:"services,omitempty"`
 	Containers      map[string]*ServiceConfig `yaml:"containers,omitempty"`
 	LoadBalancers   map[string]*ServiceConfig `yaml:"load_balancers,omitempty"`
-	VolumeDrivers   map[string]*ServiceConfig `yaml:"volume_drivers,omitempty"`
+	StorageDrivers  map[string]*ServiceConfig `yaml:"storage_drivers,omitempty"`
 	NetworkDrivers  map[string]*ServiceConfig `yaml:"network_drivers,omitempty"`
 	VirtualMachines map[string]*ServiceConfig `yaml:"virtual_machines,omitempty"`
 
