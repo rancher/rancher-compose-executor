@@ -342,7 +342,7 @@ storage_drivers:
         for s in env.services():
             s = client.wait_success(s)
             assert s.state == 'active'
-            assert s.type == 'storageDriverService',
+            assert s.type == 'storageDriverService'
             assert s.storageDriver.name == 'rancher-efs'
             assert s.storageDriver.volumeAccessMode == 'multiHostRW'
             assert s.storageDriver.scope == 'environment'
@@ -379,7 +379,7 @@ network_drivers:
         for s in env.services():
             s = client.wait_success(s)
             assert s.state == 'active'
-            assert s.type == 'networkDriverService',
+            assert s.type == 'networkDriverService'
             assert s.networkDriver.name == 'Rancher VXLAN'
             assert s.networkDriver.defaultNetwork.name == 'vxlan'
 

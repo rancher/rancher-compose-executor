@@ -22,8 +22,7 @@ const (
 type ServiceType int
 
 func FindServiceType(r *RancherService) ServiceType {
-	// TODO: hostname same in docker-compose as rancher-compose
-	if len(r.serviceConfig.ExternalIps) > 0 || r.serviceConfig.Hostname != "" {
+	if r.serviceConfig.Image == EXTERNAL_IMAGE {
 		return ExternalServiceType
 	} else if r.serviceConfig.Image == LB_IMAGE {
 		return LegacyLbServiceType
