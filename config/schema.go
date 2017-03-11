@@ -413,6 +413,24 @@ var servicesSchemaDataV2 = `{
         "scale_policy": {"type": "object"},
         "security_opt": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
         "shm_size": {"type": ["number", "string"]},
+        "secrets": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {"type": "string"},
+              {
+                "type": "object",
+                "properties": {
+                  "source": {"type": "string"},
+                  "target": {"type": "string"},
+                  "uid": {"type": "string"},
+                  "gid": {"type": "string"},
+                  "mode": {"type": "number"}
+                }
+              }
+            ]
+          }
+        },
         "stdin_open": {"type": "boolean"},
         "stop_signal": {"type": "string"},
         "storage_driver": {"type": "object"},
