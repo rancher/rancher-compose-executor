@@ -74,10 +74,12 @@ func CreateRawConfig(contents []byte) (*RawConfig, error) {
 		rawConfig.Services[name] = baseRawLoadBalancer
 		transferFields(baseRawLoadBalancer, rawConfig.Services[name], "lb_config", LBConfig{})
 	}
+	// TODO: validation will throw errors for fields directly under service
 	for name, baseRawStorageDriver := range rawConfig.StorageDrivers {
 		rawConfig.Services[name] = baseRawStorageDriver
 		transferFields(baseRawStorageDriver, rawConfig.Services[name], "storage_driver", client.StorageDriver{})
 	}
+	// TODO: validation will throw errors for fields directly under service
 	for name, baseRawNetworkDriver := range rawConfig.NetworkDrivers {
 		rawConfig.Services[name] = baseRawNetworkDriver
 		transferFields(baseRawNetworkDriver, rawConfig.Services[name], "network_driver", client.NetworkDriver{})

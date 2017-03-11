@@ -327,9 +327,10 @@ version: '2'
 storage_drivers:
   driver:
     image: nginx
-    name: driver
-    scope: environment
-    volume_access_mode: multiHostRW
+    storage_driver:
+      name: driver
+      scope: environment
+      volume_access_mode: multiHostRW
 '''
 
     for template in (template_legacy, template):
@@ -364,9 +365,10 @@ version: '2'
 network_drivers:
   driver:
     image: nginx
-    name: driver
-    default_network:
-      name: vxlan
+    network_driver:
+      name: driver
+      default_network:
+        name: vxlan
 '''
 
     for template in (template_legacy, template):
