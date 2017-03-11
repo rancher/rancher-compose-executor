@@ -28,9 +28,9 @@ func transferFields(from, to RawService, prefixField string, instance interface{
 		field := strings.SplitN(f.Tag("yaml"), ",", 2)[0]
 		if fieldValue, ok := from[field]; ok {
 			if _, ok = to[prefixField]; !ok {
-				to[prefixField] = map[string]interface{}{}
+				to[prefixField] = map[interface{}]interface{}{}
 			}
-			to[prefixField].(map[string]interface{})[field] = fieldValue
+			to[prefixField].(map[interface{}]interface{})[field] = fieldValue
 		}
 	}
 }

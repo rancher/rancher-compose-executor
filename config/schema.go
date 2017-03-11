@@ -274,6 +274,7 @@ var servicesSchemaDataV2 = `{
             {"type": "array", "items": {"type": "string"}}
           ]
         },
+        "config": {"type": "string"},
         "container_name": {"type": "string"},
         "cpu_period": {"type": ["number", "string"]},
         "cpu_shares": {"type": ["number", "string"]},
@@ -405,6 +406,7 @@ var servicesSchemaDataV2 = `{
           "uniqueItems": true
         },
 
+        "port_rules": {"type": "array"},
         "privileged": {"type": "boolean"},
         "read_only": {"type": "boolean"},
         "restart": {"type": "string"},
@@ -431,6 +433,7 @@ var servicesSchemaDataV2 = `{
             ]
           }
         },
+        "stickiness_policy": {"type": "object"},
         "stdin_open": {"type": "boolean"},
         "stop_signal": {"type": "string"},
         "storage_driver": {"type": "object"},
