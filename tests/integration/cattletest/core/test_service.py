@@ -311,5 +311,80 @@ two:
             assert s.launchConfig.labels.label == 'false'
 
 
+def test_storage_driver(client):
+    template_legacy = '''
+version: '2'
+services:
+  legacy-driver:
+    image: nginx
+    storage_driver:
+      name: legacy-driver
+      scope: environment
+      volume_access_mode: multiHostRW
+'''
+    template = '''
+version: '2'
+storage_drivers:
+  driver:
+    image: nginx
+    storage_driver:
+      name: driver
+      scope: environment
+      volume_access_mode: multiHostRW
+'''
+
+    for template in (template_legacy, template):
+        name = 'project-' + random_str()
+        env = client.create_stack(name=name, dockerCompose=template)
+        env = client.wait_success(env)
+        env = client.wait_success(env.activateservices())
+        assert env.state == 'active'
+
+        services = env.services()
+        assert len(services) == 1
+        s = client.wait_success(services[0])
+        assert s.state == 'active'
+        assert s.type == 'storageDriverService'
+        assert s.storageDriver.volumeAccessMode == 'multiHostRW'
+        assert s.storageDriver.scope == 'environment'
+
+
+def test_network_driver(client):
+    template_legacy = '''
+version: '2'
+services:
+  legacy-driver:
+    image: nginx
+    network_driver:
+      name: legacy-driver
+      default_network:
+        name: vxlan
+'''
+    template = '''
+version: '2'
+network_drivers:
+  driver:
+    image: nginx
+    network_driver:
+      name: driver
+      default_network:
+        name: vxlan
+'''
+
+    for template in (template_legacy, template):
+        name = 'project-' + random_str()
+        env = client.create_stack(name=name, dockerCompose=template)
+        env = client.wait_success(env)
+        env = client.wait_success(env.activateservices())
+        assert env.state == 'active'
+
+        services = env.services()
+        assert len(services) == 1
+        s = client.wait_success(services[0])
+        assert s.state == 'active'
+        assert s.type == 'networkDriverService'
+        assert s.networkDriver.defaultNetwork.name == 'vxlan'
+
+
 def _base():
     return path.dirname(__file__)

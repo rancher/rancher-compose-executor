@@ -7,9 +7,7 @@ source $(dirname $0)/version
 declare -A OS_ARCH_ARG
 
 OS_PLATFORM_ARG=(linux windows darwin)
-OS_ARCH_ARG[linux]="amd64 arm"
-OS_ARCH_ARG[windows]="386 amd64"
-OS_ARCH_ARG[darwin]="amd64"
+OS_ARCH_ARG[linux]="amd64"
 
 go generate
 go build -ldflags="-w -X github.com/rancher/rancher-compose-executor/version.VERSION=$VERSION" -o bin/rancher-compose
