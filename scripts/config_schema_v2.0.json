@@ -203,6 +203,7 @@
             ]
           }
         },
+        "start_on_create": {"type": "boolean"},
         "stickiness_policy": {"type": "object"},
         "stdin_open": {"type": "boolean"},
         "stop_signal": {"type": "string"},
