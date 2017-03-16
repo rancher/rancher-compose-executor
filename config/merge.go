@@ -173,7 +173,7 @@ func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup
 	var volumes map[string]*VolumeConfig
 	var networks map[string]*NetworkConfig
 	var secrets map[string]*SecretConfig
-	var hosts map[string]*client.Host
+	var hosts map[string]*HostConfig
 	if err := utils.Convert(rawConfig.Dependencies, &dependencies); err != nil {
 		return nil, err
 	}
