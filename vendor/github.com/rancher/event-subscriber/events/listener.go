@@ -54,7 +54,7 @@ func NewEventRouter(name string, priority int, apiURL string, accessKey string, 
 	}
 
 	// TODO Get subscribe collection URL from API instead of hard coding
-	subscribeURL := strings.Replace(apiURL+"/subscribe", "http", "ws", -1)
+	subscribeURL := strings.Replace(apiURL+"/subscribe", "http", "ws", 1)
 
 	return &EventRouter{
 		name:          name,
@@ -186,6 +186,9 @@ func (router *EventRouter) subscribeToEvents(subscribeURL string, accessKey stri
 				body, _ := ioutil.ReadAll(resp.Body)
 				log.Errorf("Error response: %s", body)
 			}
+		}
+		if ws != nil {
+			ws.Close()
 		}
 		return nil, err
 	}
