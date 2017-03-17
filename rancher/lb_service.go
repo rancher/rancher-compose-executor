@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	legacyClient "github.com/rancher/go-rancher/client"
 	"github.com/rancher/go-rancher/v2"
@@ -189,6 +190,17 @@ frontend %s
 					return fmt.Errorf("Failed to find existing service: %s", portRule.Service)
 				}
 				finalPortRule.ServiceId = targetService.Id
+			}
+			if portRule.Container != "" {
+				time.Sleep(time.Second * 4)
+				targetContainer, err := r.FindExistingContainer(portRule.Container)
+				if err != nil {
+					return err
+				}
+				if targetContainer == nil {
+					return fmt.Errorf("Failed to find existing container: %s", portRule.Service)
+				}
+				finalPortRule.InstanceId = targetContainer.Id
 			}
 
 			service.RealLbConfig.PortRules = append(service.RealLbConfig.PortRules, finalPortRule)

@@ -2,11 +2,13 @@ package project
 
 import (
 	"strings"
+
+	"github.com/rancher/rancher-compose-executor/config"
 )
 
 // DefaultDependentServices return the dependent services (as an array of ServiceRelationship)
 // for the specified project and service. It looks for : links, volumesFrom, net and ipc configuration.
-func DefaultDependentServices(p *Project, s Service) []ServiceRelationship {
+func DefaultDependentServices(configs *config.ServiceConfigs, s Service) []ServiceRelationship {
 	config := s.Config()
 	if config == nil {
 		return []ServiceRelationship{}
@@ -14,7 +16,9 @@ func DefaultDependentServices(p *Project, s Service) []ServiceRelationship {
 
 	result := []ServiceRelationship{}
 	for _, link := range config.Links {
-		result = append(result, NewServiceRelationship(link, RelTypeLink))
+		relationship := NewServiceRelationship(link, RelTypeLink)
+		relationship.Optional = true
+		result = append(result, relationship)
 	}
 
 	for _, volumesFrom := range config.VolumesFrom {

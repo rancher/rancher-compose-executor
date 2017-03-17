@@ -108,7 +108,6 @@ type ServiceConfigV1 struct {
 	HealthCheck *client.InstanceHealthCheck `yaml:"health_check,omitempty"`
 
 	Metadata        map[string]interface{}          `yaml:"metadata,omitempty"`
-	ScalePolicy     *client.ScalePolicy             `yaml:"scale_policy,omitempty"`
 	ServiceSchemas  map[string]client.Schema        `yaml:"service_schemas,omitempty"`
 	UpgradeStrategy client.InServiceUpgradeStrategy `yaml:"upgrade_strategy,omitempty"`
 	StorageDriver   *client.StorageDriver           `yaml:"storage_driver,omitempty"`
@@ -212,7 +211,6 @@ type RancherConfig struct {
 	HealthCheck *client.InstanceHealthCheck `yaml:"health_check,omitempty"`
 
 	Metadata        map[string]interface{}          `yaml:"metadata,omitempty"`
-	ScalePolicy     *client.ScalePolicy             `yaml:"scale_policy,omitempty"`
 	ServiceSchemas  map[string]client.Schema        `yaml:"service_schemas,omitempty"`
 	UpgradeStrategy client.InServiceUpgradeStrategy `yaml:"upgrade_strategy,omitempty"`
 	StorageDriver   *client.StorageDriver           `yaml:"storage_driver,omitempty"`
@@ -226,6 +224,7 @@ type PortRule struct {
 	Path        string `json:"path" yaml:"path"`
 	Hostname    string `json:"hostname" yaml:"hostname"`
 	Service     string `json:"service" yaml:"service"`
+	Container   string `json:"container" yaml:"container"`
 	TargetPort  int    `json:"target_port" yaml:"target_port"`
 	Priority    int    `json:"priority" yaml:"priority"`
 	BackendName string `json:"backend_name" yaml:"backend_name"`

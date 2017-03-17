@@ -51,7 +51,6 @@ func (f *NormalFactory) config(r *RancherService) (*CompositeService, *client.La
 			Name:              r.name,
 			Metadata:          r.Metadata(),
 			Scale:             int64(r.getConfiguredScale()),
-			ScalePolicy:       r.serviceConfig.ScalePolicy,
 			RetainIp:          r.serviceConfig.RetainIp,
 			StackId:           r.Context().Stack.Id,
 			SelectorContainer: r.SelectorContainer(),
@@ -108,7 +107,7 @@ func (f *NormalFactory) Rollback(r *RancherService) error {
 		return err
 	}
 
-	existingService, err = r.Client().Service.ActionRollback(existingService)
+	existingService, err = r.Client().Service.ActionRollback(existingService, nil)
 	if err != nil {
 		return err
 	}

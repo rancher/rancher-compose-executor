@@ -1,9 +1,6 @@
 package rancher
 
 import (
-	"errors"
-	"fmt"
-	"io"
 	"strings"
 	"sync"
 	"time"
@@ -13,7 +10,6 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/libcompose/labels"
-	"github.com/gorilla/websocket"
 	"github.com/rancher/go-rancher/hostaccess"
 	"github.com/rancher/go-rancher/v2"
 	"github.com/rancher/rancher-compose-executor/config"
@@ -176,58 +172,6 @@ func (r *RancherService) up(create bool) error {
 	return err
 }
 
-func (r *RancherService) resolveServiceAndStackId(name string) (string, string, error) {
-	parts := strings.SplitN(name, "/", 2)
-	if len(parts) == 1 {
-		return name, r.context.Stack.Id, nil
-	}
-
-	stacks, err := r.context.Client.Stack.List(&client.ListOpts{
-		Filters: map[string]interface{}{
-			"name":         parts[0],
-			"removed_null": nil,
-		},
-	})
-
-	if err != nil {
-		return "", "", err
-	}
-
-	if len(stacks.Data) == 0 {
-		return "", "", fmt.Errorf("Failed to find stack: %s", parts[0])
-	}
-
-	return parts[1], stacks.Data[0].Id, nil
-}
-
-func (r *RancherService) FindExisting(name string) (*client.Service, error) {
-	logrus.Debugf("Finding service %s", name)
-
-	name, stackId, err := r.resolveServiceAndStackId(name)
-	if err != nil {
-		return nil, err
-	}
-
-	services, err := r.context.Client.Service.List(&client.ListOpts{
-		Filters: map[string]interface{}{
-			"stackId":      stackId,
-			"name":         name,
-			"removed_null": nil,
-		},
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	if len(services.Data) == 0 {
-		return nil, nil
-	}
-
-	logrus.Debugf("Found service %s", name)
-	return &services.Data[0], nil
-}
-
 func (r *RancherService) Metadata() map[string]interface{} {
 	return rUtils.NestedMapsToMapInterface(r.serviceConfig.Metadata)
 }
@@ -326,40 +270,6 @@ func (r *RancherService) getServiceLinks() ([]client.ServiceLink, error) {
 	return result, nil
 }
 
-func (r *RancherService) getLinks() (map[Link]string, error) {
-	result := map[Link]string{}
-
-	for _, link := range append(r.serviceConfig.Links, r.serviceConfig.ExternalLinks...) {
-		parts := strings.SplitN(link, ":", 2)
-		name := parts[0]
-		alias := ""
-		if len(parts) == 2 {
-			alias = parts[1]
-		}
-
-		name = strings.TrimSpace(name)
-		alias = strings.TrimSpace(alias)
-
-		linkedService, err := r.FindExisting(name)
-		if err != nil {
-			return nil, err
-		}
-
-		if linkedService == nil {
-			if _, ok := r.context.Project.ServiceConfigs.Get(name); !ok {
-				logrus.Warnf("Failed to find service %s to link to", name)
-			}
-		} else {
-			result[Link{
-				ServiceName: name,
-				Alias:       alias,
-			}] = linkedService.Id
-		}
-	}
-
-	return result, nil
-}
-
 func (r *RancherService) containers() ([]client.Container, error) {
 	service, err := r.FindExisting(r.name)
 	if err != nil {
@@ -406,48 +316,8 @@ func (r *RancherService) Log(ctx context.Context, follow bool) error {
 	return nil
 }
 
-func (r *RancherService) pipeLogs(container *client.Container, conn *websocket.Conn) {
-	defer conn.Close()
-
-	log_name := strings.TrimPrefix(container.Name, r.context.ProjectName+"_")
-	logger := r.context.LoggerFactory.CreateContainerLogger(log_name)
-
-	for {
-		messageType, bytes, err := conn.ReadMessage()
-
-		if err == io.EOF {
-			return
-		} else if err != nil {
-			logrus.Errorf("Failed to read log: %v", err)
-			return
-		}
-
-		if messageType != websocket.TextMessage || len(bytes) <= 3 {
-			continue
-		}
-
-		if bytes[len(bytes)-1] != '\n' {
-			bytes = append(bytes, '\n')
-		}
-		message := bytes[3:]
-
-		if "01" == string(bytes[:2]) {
-			logger.Out(message)
-		} else {
-			logger.Err(message)
-		}
-	}
-}
-
 func (r *RancherService) DependentServices() []project.ServiceRelationship {
-	result := []project.ServiceRelationship{}
-
-	for _, rel := range service.DefaultDependentServices(r.context.Project, r) {
-		if rel.Type == project.RelTypeLink {
-			rel.Optional = true
-			result = append(result, rel)
-		}
-	}
+	result := service.DefaultDependentServices(r.context.Project.ServiceConfigs, r)
 
 	// Load balancers should depend on non-external target services
 	lbConfig := r.serviceConfig.LbConfig
@@ -464,45 +334,6 @@ func (r *RancherService) DependentServices() []project.ServiceRelationship {
 
 func (r *RancherService) Client() *client.RancherClient {
 	return r.context.Client
-}
-
-func (r *RancherService) pullImage(image string, labels map[string]string) error {
-	taskOpts := &client.PullTask{
-		Mode:   "all",
-		Labels: rUtils.ToMapInterface(labels),
-		Image:  image,
-	}
-
-	if r.context.PullCached {
-		taskOpts.Mode = "cached"
-	}
-
-	task, err := r.context.Client.PullTask.Create(taskOpts)
-	if err != nil {
-		return err
-	}
-
-	printed := map[string]string{}
-	lastMessage := ""
-	r.WaitFor(&task.Resource, task, func() string {
-		if task.TransitioningMessage != "" && task.TransitioningMessage != "In Progress" && task.TransitioningMessage != lastMessage {
-			printStatus(task.Image, printed, task.Status)
-			lastMessage = task.TransitioningMessage
-		}
-
-		return task.Transitioning
-	})
-
-	if task.Transitioning == "error" {
-		return errors.New(task.TransitioningMessage)
-	}
-
-	if !printStatus(task.Image, printed, task.Status) {
-		return errors.New("Pull failed on one of the hosts")
-	}
-
-	logrus.Infof("Finished pulling %s", task.Image)
-	return nil
 }
 
 func (r *RancherService) Pull(ctx context.Context) (err error) {
