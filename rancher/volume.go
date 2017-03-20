@@ -61,31 +61,17 @@ type Volume struct {
 	perContainer  bool
 }
 
-// InspectTemplate looks up a volume template
-func (v *Volume) InspectTemplate(ctx context.Context) (*client.VolumeTemplate, error) {
+// Inspect looks up a volume template
+func (v *Volume) Inspect(ctx context.Context) (*client.VolumeTemplate, error) {
+	filters := map[string]interface{}{
+		"name": v.name,
+	}
+	if !v.external {
+		filters["stackId"] = v.context.Stack.Id
+	}
+
 	volumes, err := v.context.Client.VolumeTemplate.List(&client.ListOpts{
-		Filters: map[string]interface{}{
-			"name":    v.name,
-			"stackId": v.context.Stack.Id,
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if len(volumes.Data) > 0 {
-		return &volumes.Data[0], nil
-	}
-
-	return nil, nil
-}
-
-// InspectExternal looks up a volume
-func (v *Volume) InspectExternal(ctx context.Context) (*client.Volume, error) {
-	volumes, err := v.context.Client.Volume.List(&client.ListOpts{
-		Filters: map[string]interface{}{
-			"name": v.name,
-		},
+		Filters: filters,
 	})
 	if err != nil {
 		return nil, err
@@ -103,7 +89,7 @@ func (v *Volume) Remove(ctx context.Context) error {
 		return nil
 	}
 
-	volumeResource, err := v.InspectTemplate(ctx)
+	volumeResource, err := v.Inspect(ctx)
 	if err != nil {
 		return err
 	}
@@ -111,25 +97,15 @@ func (v *Volume) Remove(ctx context.Context) error {
 }
 
 func (v *Volume) EnsureItExists(ctx context.Context) error {
-	if v.external {
-		volumeResource, err := v.InspectExternal(ctx)
-		if err != nil {
-			return err
-		}
-
-		if volumeResource == nil {
-			return fmt.Errorf("Volume %s declared as external, but could not be found. Please create the volume manually and try again.", v.name)
-		}
-
-		return nil
-	}
-
-	volumeResource, err := v.InspectTemplate(ctx)
+	volumeResource, err := v.Inspect(ctx)
 	if err != nil {
 		return err
 	}
 
 	if volumeResource == nil {
+		if v.external {
+			return fmt.Errorf("Volume %s declared as external, but could not be found. Please create the volume manually and try again.", v.name)
+		}
 		logrus.Infof("Creating volume template %s", v.name)
 		return v.create(ctx)
 	} else {
