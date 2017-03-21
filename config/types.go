@@ -281,6 +281,11 @@ type SecretConfig struct {
 	External string `yaml:"external,omitempty"`
 }
 
+type HostConfig struct {
+	Count       int `yaml:"count,omitempty"`
+	client.Host `yaml:",inline"`
+}
+
 type DependencyConfig struct {
 	Name     string `yaml:"name,omitempty"`
 	Template string `yaml:"template,omitempty"`
@@ -317,7 +322,7 @@ type Config struct {
 	Volumes      map[string]*VolumeConfig     `yaml:"volumes,omitempty"`
 	Networks     map[string]*NetworkConfig    `yaml:"networks,omitempty"`
 	Secrets      map[string]*SecretConfig     `yaml:"secrets,omitempty"`
-	Hosts        map[string]*client.Host      `yaml:"hosts,omitempty"`
+	Hosts        map[string]*HostConfig       `yaml:"hosts,omitempty"`
 }
 
 // NewServiceConfigs initializes a new Configs struct

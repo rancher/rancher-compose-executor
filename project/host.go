@@ -1,7 +1,7 @@
 package project
 
 import (
-	"github.com/rancher/go-rancher/v2"
+	"github.com/rancher/rancher-compose-executor/config"
 	"golang.org/x/net/context"
 )
 
@@ -10,5 +10,5 @@ type Hosts interface {
 }
 
 type HostsFactory interface {
-	Create(projectName string, hostConfigs map[string]*client.Host) (Hosts, error)
+	Create(projectName string, hostConfigs map[string]*config.HostConfig) (Hosts, error)
 }

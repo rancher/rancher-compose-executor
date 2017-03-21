@@ -12,7 +12,6 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/docker/libcompose/logger"
 	"github.com/docker/libcompose/utils"
-	"github.com/rancher/go-rancher/v2"
 	"github.com/rancher/rancher-compose-executor/config"
 	"github.com/rancher/rancher-compose-executor/lookup"
 	"github.com/rancher/rancher-compose-executor/project/events"
@@ -30,7 +29,7 @@ type Project struct {
 	VolumeConfigs     map[string]*config.VolumeConfig
 	NetworkConfigs    map[string]*config.NetworkConfig
 	SecretConfigs     map[string]*config.SecretConfig
-	HostConfigs       map[string]*client.Host
+	HostConfigs       map[string]*config.HostConfig
 	Files             []string
 	ReloadCallback    func() error
 
@@ -54,7 +53,7 @@ func NewProject(context *Context) *Project {
 		VolumeConfigs:     make(map[string]*config.VolumeConfig),
 		NetworkConfigs:    make(map[string]*config.NetworkConfig),
 		SecretConfigs:     make(map[string]*config.SecretConfig),
-		HostConfigs:       make(map[string]*client.Host),
+		HostConfigs:       make(map[string]*config.HostConfig),
 	}
 
 	if context.LoggerFactory == nil {
