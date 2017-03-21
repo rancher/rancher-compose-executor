@@ -282,8 +282,8 @@ type SecretConfig struct {
 }
 
 type HostConfig struct {
-	Count       int `yaml:"count,omitempty"`
-	client.Host `yaml:",inline"`
+	Count   int                    `yaml:"count,omitempty"`
+	Dynamic map[string]interface{} `yaml:",inline"`
 }
 
 type DependencyConfig struct {
