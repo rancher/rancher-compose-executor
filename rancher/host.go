@@ -1,7 +1,9 @@
 package rancher
 
 import (
+	"bytes"
 	"fmt"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -26,13 +28,59 @@ func (f *RancherHostsFactory) Create(projectName string, hostConfigs map[string]
 			context:     f.Context,
 			name:        name,
 			projectName: projectName,
-			hostConfig:  &config.Host,
+			hostConfig:  keysToCamelCase(config.Dynamic).(map[string]interface{}),
 			count:       count,
 		})
 	}
 	return &Hosts{
 		hosts: hosts,
 	}, nil
+}
+
+// Convert map keys from underscore seperated to camel case
+func keysToCamelCase(item interface{}) interface{} {
+	switch typedDatas := item.(type) {
+
+	case map[string]interface{}:
+		newMap := make(map[string]interface{})
+
+		for key, value := range typedDatas {
+			newMap[toCamelCase(key)] = keysToCamelCase(value)
+		}
+		return newMap
+
+	case map[interface{}]interface{}:
+		newMap := make(map[string]interface{})
+
+		for key, value := range typedDatas {
+			stringKey := key.(string)
+			newMap[toCamelCase(stringKey)] = keysToCamelCase(value)
+		}
+		return newMap
+
+	case []interface{}:
+		newArray := make([]interface{}, 0)
+
+		for _, value := range typedDatas {
+			newArray = append(newArray, keysToCamelCase(value))
+		}
+		return newArray
+
+	default:
+		return item
+	}
+}
+
+func toCamelCase(s string) string {
+	var buffer bytes.Buffer
+	for i, c := range s {
+		if i > 0 && s[i-1] == '_' {
+			buffer.WriteString(strings.ToUpper(string(c)))
+		} else {
+			buffer.WriteRune(c)
+		}
+	}
+	return strings.Replace(buffer.String(), "_", "", -1)
 }
 
 type Hosts struct {
@@ -53,7 +101,7 @@ type Host struct {
 	context     *Context
 	name        string
 	projectName string
-	hostConfig  *client.Host
+	hostConfig  map[string]interface{}
 	count       int
 }
 
@@ -72,38 +120,44 @@ func (h *Host) EnsureItExists(ctx context.Context) error {
 		existingNames[existingHost.Name] = true
 	}
 
-	var hostsToCreate []client.Host
+	var hostsToCreate []map[string]interface{}
 
 	if h.count == 0 {
 		return nil
 	} else if h.count == 1 {
 		name := fmt.Sprintf("%s-%s", h.context.Stack.Name, h.name)
 		if _, ok := existingNames[name]; !ok {
-			host := *h.hostConfig
-			host.Name = name
-			host.Hostname = name
-			host.StackId = h.context.Stack.Id
-			hostsToCreate = append(hostsToCreate, host)
+			hostsToCreate = append(hostsToCreate, createHostConfig(h.hostConfig, name, h.context.Stack.Id))
 		}
 	} else {
 		for i := 1; i < h.count+1; i++ {
 			name := fmt.Sprintf("%s-%s-%d", h.context.Stack.Name, h.name, i)
 			if _, ok := existingNames[name]; !ok {
-				host := *h.hostConfig
-				host.Name = name
-				host.Hostname = name
-				host.StackId = h.context.Stack.Id
-				hostsToCreate = append(hostsToCreate, host)
+				hostsToCreate = append(hostsToCreate, createHostConfig(h.hostConfig, name, h.context.Stack.Id))
 			}
 		}
 	}
 
 	for _, host := range hostsToCreate {
-		log.Infof("Creating host %s", host.Name)
-		if _, err := h.context.Client.Host.Create(&host); err != nil {
+		log.Infof("Creating host %s", host["name"])
+		if err = h.context.Client.Create("host", host, &client.Host{}); err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func createHostConfig(existing map[string]interface{}, name, stackId string) map[string]interface{} {
+	hostConfig := map[string]interface{}{}
+
+	for k, v := range existing {
+		hostConfig[k] = v
+	}
+
+	hostConfig["name"] = name
+	hostConfig["hostname"] = name
+	hostConfig["stackId"] = stackId
+
+	return hostConfig
 }
