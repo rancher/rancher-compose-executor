@@ -284,7 +284,9 @@ type SecretConfig struct {
 }
 
 type HostConfig struct {
-	Count   int                    `yaml:"count,omitempty"`
+	Count    int    `yaml:"count,omitempty"`
+	Template string `yaml:"template,omitempty"`
+	// Fancy trick to catch any other fields
 	Dynamic map[string]interface{} `yaml:",inline"`
 }
 
