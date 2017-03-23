@@ -7,11 +7,11 @@ import (
 
 	"github.com/docker/docker/api/types/blkiodev"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/libcompose/yaml"
+	shlex "github.com/flynn/go-shlex"
 	"github.com/rancher/rancher-compose-executor/config"
 	"github.com/rancher/rancher-compose-executor/lookup"
 	"github.com/rancher/rancher-compose-executor/project"
-	"github.com/docker/libcompose/yaml"
-	shlex "github.com/flynn/go-shlex"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -212,6 +212,21 @@ func TestStopSignal(t *testing.T) {
 	assert.Equal(t, "SIGTERM", cfg.StopSignal)
 }
 
+func TestSysctls(t *testing.T) {
+	ctx := project.Context{}
+	sc := &config.ServiceConfig{
+		Sysctls: yaml.SliceorMap{
+			"net.core.somaxconn": "1024",
+		},
+	}
+	_, hostCfg, err := Convert(sc, ctx)
+	assert.Nil(t, err)
+
+	assert.True(t, reflect.DeepEqual(map[string]string{
+		"net.core.somaxconn": "1024",
+	}, hostCfg.Sysctls))
+}
+
 func TestTmpfs(t *testing.T) {
 	ctx := project.Context{}
 	sc := &config.ServiceConfig{
@@ -317,4 +332,3 @@ func TestBlkioDeviceWriteIOps(t *testing.T) {
 		},
 	}, hostCfg.BlkioDeviceWriteIOps))
 }
-

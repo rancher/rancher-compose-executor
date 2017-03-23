@@ -302,6 +302,9 @@ def test_args(client, compose):
         assert launch_config.memorySwappiness == 100
         assert launch_config.oomKillDisable
         assert launch_config.ipcMode == 'host'
+        assert launch_config.sysctls == {
+            "net.core.somaxconn": "1024"
+        }
         # TODO: test isolation
         # Not supported
         # assert launch_config.externalLinks == ['foo', 'bar']

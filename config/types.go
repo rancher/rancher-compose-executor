@@ -74,6 +74,7 @@ type ServiceConfigV1 struct {
 	StdinOpen         bool                 `yaml:"stdin_open,omitempty"`
 	SecurityOpt       []string             `yaml:"security_opt,omitempty"`
 	StopSignal        string               `yaml:"stop_signal,omitempty"`
+	Sysctls           yaml.SliceorMap      `yaml:"sysctls,omitempty"`
 	Tmpfs             yaml.Stringorslice   `yaml:"tmpfs,omitempty"`
 	Tty               bool                 `yaml:"tty,omitempty"`
 	User              string               `yaml:"user,omitempty"`
@@ -174,6 +175,7 @@ type ServiceConfig struct {
 	SecurityOpt       []string             `yaml:"security_opt,omitempty"`
 	ShmSize           yaml.StringorInt     `yaml:"shm_size,omitempty"`
 	StopSignal        string               `yaml:"stop_signal,omitempty"`
+	Sysctls           yaml.SliceorMap      `yaml:"sysctls,omitempty"`
 	Tmpfs             yaml.Stringorslice   `yaml:"tmpfs,omitempty"`
 	VolumeDriver      string               `yaml:"volume_driver,omitempty"`
 	Volumes           *yaml.Volumes        `yaml:"volumes,omitempty"`
