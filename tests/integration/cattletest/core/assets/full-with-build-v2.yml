@@ -89,3 +89,5 @@ services:
     oom_kill_disable: true
     ipc: host
     isolation: default
+    sysctls:
+      net.core.somaxconn: "1024"
