@@ -28,7 +28,7 @@ func main() {
 }
 
 func cliMain() {
-	factory := &rancherApp.ProjectFactory{}
+	factory := &rancherApp.RancherProjectFactory{}
 
 	app := cli.NewApp()
 	app.Name = "rancher-compose"
