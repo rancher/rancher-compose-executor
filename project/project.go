@@ -87,10 +87,12 @@ func NewProject(context *Context) *Project {
 	return p
 }
 
-// Parse populates project information based on its context. It sets up the name,
-// the composefile and the composebytes (the composefile content).
+func (p *Project) Open() error {
+	return p.context.open()
+}
+
 func (p *Project) Parse() error {
-	err := p.context.open()
+	err := p.Open()
 	if err != nil {
 		return err
 	}

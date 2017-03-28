@@ -6,5 +6,5 @@ import (
 )
 
 type ProjectFactory interface {
-	Create(c *cli.Context) (*project.Project, error)
+	Create(c *cli.Context, dryRun bool) (*project.Project, error)
 }

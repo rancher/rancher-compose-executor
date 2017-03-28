@@ -7,6 +7,7 @@ import (
 
 	"github.com/rancher/rancher-compose-executor/project/events"
 	"github.com/rancher/rancher-compose-executor/project/options"
+	"github.com/rancher/rancher-compose-executor/template"
 )
 
 func (p *Project) Build(ctx context.Context, buildOptions options.Build, services ...string) error {
@@ -50,4 +51,16 @@ func (p *Project) Up(ctx context.Context, options options.Up, services ...string
 	}), func(service Service) error {
 		return service.Create(ctx, options.Create)
 	})
+}
+
+func (p *Project) Render() ([][]byte, error) {
+	var renderedComposeBytes [][]byte
+	for _, contents := range p.context.ComposeBytes {
+		contents, err := template.Apply(contents, p.context.EnvironmentLookup.Variables())
+		if err != nil {
+			return nil, err
+		}
+		renderedComposeBytes = append(renderedComposeBytes, contents)
+	}
+	return renderedComposeBytes, nil
 }
