@@ -311,6 +311,46 @@ two:
             assert s.launchConfig.labels.label == 'false'
 
 
+def test_release_variables(client):
+    name = 'project-' + random_str()
+    rancher_compose = '''
+.catalog:
+  version: 0.0.1
+'''
+    template = '''
+one:
+  image: nginx
+  labels:
+    a: '{{ .Release.Version }}'
+    b: '{{ .Release.PreviousVersion }}'
+'''
+
+    env = client.create_stack(name=name, dockerCompose=template,
+                              rancherCompose=rancher_compose)
+    env = client.wait_success(env)
+    env = client.wait_success(env.activateservices())
+    assert env.state == 'active'
+    for s in env.services():
+        s = client.wait_success(s)
+        assert s.state == 'active'
+
+    rancher_compose = '''
+.catalog:
+  version: 0.0.2
+'''
+
+    # TODO: externalId should not be in upgrade
+    env = env.upgrade(dockerCompose=template, rancherCompose=rancher_compose)
+    env = client.wait_success(env, timeout=120)
+    assert env.state == 'upgraded'
+    for s in env.services():
+        s = client.wait_success(s)
+        if s.name == 'one':
+            assert s.state == 'upgraded'
+            assert s.launchConfig.labels['a'] == '0.0.2'
+            assert s.launchConfig.labels['b'] == '0.0.1'
+
+
 def test_storage_driver(client):
     template_legacy = '''
 version: '2'

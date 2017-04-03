@@ -93,9 +93,9 @@ func CreateRawConfig(contents []byte) (*RawConfig, error) {
 
 // TODO: get rid of existingServices
 // Merge merges a compose file into an existing set of service configs
-func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup, resourceLookup ResourceLookup, file string, contents []byte) (*Config, error) {
+func Merge(existingServices *ServiceConfigs, environmentLookup EnvironmentLookup, resourceLookup ResourceLookup, releaseInfo template.ReleaseInfo, file string, contents []byte) (*Config, error) {
 	var err error
-	contents, err = template.Apply(contents, environmentLookup.Variables())
+	contents, err = template.Apply(contents, releaseInfo, environmentLookup.Variables())
 	if err != nil {
 		return nil, err
 	}

@@ -15,6 +15,7 @@ import (
 	"github.com/rancher/rancher-compose-executor/config"
 	"github.com/rancher/rancher-compose-executor/lookup"
 	"github.com/rancher/rancher-compose-executor/project/events"
+	"github.com/rancher/rancher-compose-executor/template"
 )
 
 type wrapperAction func(*serviceWrapper, map[string]*serviceWrapper)
@@ -174,7 +175,10 @@ func (p *Project) CreateService(name string) (Service, error) {
 }
 
 func (p *Project) load(file string, bytes []byte) error {
-	config, err := config.Merge(p.ServiceConfigs, p.context.EnvironmentLookup, p.context.ResourceLookup, file, bytes)
+	config, err := config.Merge(p.ServiceConfigs, p.context.EnvironmentLookup, p.context.ResourceLookup, template.ReleaseInfo{
+		Version:         p.context.Version,
+		PreviousVersion: p.context.PreviousVersion,
+	}, file, bytes)
 	if err != nil {
 		log.Errorf("Could not parse config for project %s : %v", p.Name, err)
 		return err

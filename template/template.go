@@ -8,7 +8,12 @@ import (
 	"github.com/Masterminds/sprig"
 )
 
-func Apply(contents []byte, variables map[string]string) ([]byte, error) {
+type ReleaseInfo struct {
+	Version         string
+	PreviousVersion string
+}
+
+func Apply(contents []byte, releaseInfo ReleaseInfo, variables map[string]string) ([]byte, error) {
 	// Skip templating if contents begin with '# notemplating'
 	trimmedContents := strings.TrimSpace(string(contents))
 	if strings.HasPrefix(trimmedContents, "#notemplating") || strings.HasPrefix(trimmedContents, "# notemplating") {
@@ -21,8 +26,9 @@ func Apply(contents []byte, variables map[string]string) ([]byte, error) {
 	}
 
 	buf := bytes.Buffer{}
-	t.Execute(&buf, map[string]map[string]string{
-		"Values": variables,
+	t.Execute(&buf, map[string]interface{}{
+		"Values":  variables,
+		"Release": releaseInfo,
 	})
 	return buf.Bytes(), nil
 }
