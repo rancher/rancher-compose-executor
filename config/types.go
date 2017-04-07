@@ -305,6 +305,7 @@ type RawConfig struct {
 	NetworkDrivers   RawServiceMap `yaml:"network_drivers,omitempty"`
 	VirtualMachines  RawServiceMap `yaml:"virtual_machines,omitempty"`
 	ExternalServices RawServiceMap `yaml:"external_services,omitempty"`
+	Aliases          RawServiceMap `yaml:"aliases,omitempty"`
 
 	Dependencies map[string]interface{} `yaml:"dependencies,omitempty"`
 	Volumes      map[string]interface{} `yaml:"volumes,omitempty"`

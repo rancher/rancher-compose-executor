@@ -1432,7 +1432,7 @@ def test_service_hash_no_change(client, compose):
 
 
 def test_dns_service(client, compose):
-    template = '''
+    template1 = '''
     web1:
         image: nginx
     web2:
@@ -1443,22 +1443,38 @@ def test_dns_service(client, compose):
         - web1
         - web2
     '''
-    project_name = create_project(compose, input=template)
 
-    project = find_one(client.list_stack, name=project_name)
-    services = project.services()
+    template2 = '''
+    version: '2'
+    services:
+        web1:
+            image: nginx
+        web2:
+            image: nginx
+    aliases:
+        web:
+            services:
+            - web1
+            - web2
+    '''
 
-    assert len(services) == 3
+    for template in (template1, template2):
+        project_name = create_project(compose, input=template)
 
-    web = _get_service(services, 'web')
+        project = find_one(client.list_stack, name=project_name)
+        services = project.services()
 
-    assert web.type == 'dnsService'
-    consumed = web.consumedservices()
+        assert len(services) == 3
 
-    assert len(consumed) == 2
-    names = {x.name for x in consumed}
+        web = _get_service(services, 'web')
 
-    assert names == {'web1', 'web2'}
+        assert web.type == 'dnsService'
+        consumed = web.consumedservices()
+
+        assert len(consumed) == 2
+        names = {x.name for x in consumed}
+
+        assert names == {'web1', 'web2'}
 
 
 def test_up_relink(client, compose):

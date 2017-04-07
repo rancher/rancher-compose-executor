@@ -91,6 +91,15 @@ func CreateRawConfig(contents []byte) (*RawConfig, error) {
 		rawConfig.Services[name] = baseRawExternalService
 		rawConfig.Services[name]["image"] = "rancher/external-service"
 	}
+	// TODO: container aliases
+	for name, baseRawAlias := range rawConfig.Aliases {
+		if serviceAliases, ok := baseRawAlias["services"]; ok {
+			rawConfig.Services[name] = baseRawAlias
+			rawConfig.Services[name]["image"] = "rancher/dns-service"
+			rawConfig.Services[name]["links"] = serviceAliases
+			delete(rawConfig.Services[name], "services")
+		}
+	}
 
 	return &rawConfig, nil
 }
