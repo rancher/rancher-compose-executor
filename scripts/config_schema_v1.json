@@ -142,7 +142,7 @@
         "sysctls": {"$ref": "#/definitions/list_or_dict"},
         "tty": {"type": "boolean"},
         "type": {"type": "string"},
-        "update_strategy": {"type": "object"},
+        "upgrade_strategy": {"type": "object"},
         "ulimits": {
           "type": "object",
           "patternProperties": {
