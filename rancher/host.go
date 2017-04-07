@@ -106,6 +106,10 @@ type Host struct {
 }
 
 func (h *Host) EnsureItExists(ctx context.Context) error {
+	if h.count == 0 {
+		return nil
+	}
+
 	existingHosts, err := h.context.Client.Host.List(&client.ListOpts{
 		Filters: map[string]interface{}{
 			"stackId": h.context.Stack.Id,
@@ -121,20 +125,10 @@ func (h *Host) EnsureItExists(ctx context.Context) error {
 	}
 
 	var hostsToCreate []map[string]interface{}
-
-	if h.count == 0 {
-		return nil
-	} else if h.count == 1 {
-		name := fmt.Sprintf("%s-%s", h.context.Stack.Name, h.name)
+	for i := 1; i < h.count+1; i++ {
+		name := fmt.Sprintf("%s-%s-%d", h.context.Stack.Name, h.name, i)
 		if _, ok := existingNames[name]; !ok {
 			hostsToCreate = append(hostsToCreate, createHostConfig(h.hostConfig, name, h.context.Stack.Id))
-		}
-	} else {
-		for i := 1; i < h.count+1; i++ {
-			name := fmt.Sprintf("%s-%s-%d", h.context.Stack.Name, h.name, i)
-			if _, ok := existingNames[name]; !ok {
-				hostsToCreate = append(hostsToCreate, createHostConfig(h.hostConfig, name, h.context.Stack.Id))
-			}
 		}
 	}
 
