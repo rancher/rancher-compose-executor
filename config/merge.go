@@ -87,6 +87,10 @@ func CreateRawConfig(contents []byte) (*RawConfig, error) {
 	for name, baseRawVirtualMachine := range rawConfig.VirtualMachines {
 		rawConfig.Services[name] = baseRawVirtualMachine
 	}
+	for name, baseRawExternalService := range rawConfig.ExternalServices {
+		rawConfig.Services[name] = baseRawExternalService
+		rawConfig.Services[name]["image"] = "rancher/external-service"
+	}
 
 	return &rawConfig, nil
 }

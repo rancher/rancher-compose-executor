@@ -1180,15 +1180,39 @@ def test_external_service_hostname(client, compose):
 
 
 def test_external_ip(client, compose):
-    project_name = create_project(compose, file='assets/externalip/test.yml')
+    template1 = '''
+    web:
+        image: rancher/external-service
+        external_ips:
+        - 1.1.1.1
+        - 2.2.2.2
+        health_check:
+          port: 80
+          healthy_threshold: 2
+    '''
 
-    project = find_one(client.list_stack, name=project_name)
-    service = find_one(project.services)
+    template2 = '''
+    version: '2'
+    external_services:
+        web:
+            external_ips:
+            - 1.1.1.1
+            - 2.2.2.2
+            health_check:
+              port: 80
+              healthy_threshold: 2
+    '''
 
-    assert service.name == 'web'
-    assert service.type == 'externalService'
-    assert service.externalIpAddresses == ['1.1.1.1', '2.2.2.2']
-    assert service.healthCheck.healthyThreshold == 2
+    for template in (template1, template2):
+        project_name = create_project(compose, input=template)
+
+        project = find_one(client.list_stack, name=project_name)
+        service = find_one(project.services)
+
+        assert service.name == 'web'
+        assert service.type == 'externalService'
+        assert service.externalIpAddresses == ['1.1.1.1', '2.2.2.2']
+        assert service.healthCheck.healthyThreshold == 2
 
 
 def test_service_inplace_rollback(client, compose):
