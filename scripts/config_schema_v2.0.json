@@ -212,7 +212,7 @@
         "tmpfs": {"$ref": "#/definitions/string_or_list"},
         "tty": {"type": "boolean"},
         "type": {"type": "string"},
-        "update_strategy": {"type": "object"},
+        "upgrade_strategy": {"type": "object"},
         "ulimits": {
           "type": "object",
           "patternProperties": {
