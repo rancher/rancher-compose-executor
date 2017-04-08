@@ -249,7 +249,8 @@ func (r *RancherService) createService() (*client.Service, error) {
 func (r *RancherService) setupLinks(service *client.Service, update bool) error {
 	// Don't modify links for selector based linking, don't want to conflict
 	// Don't modify links for load balancers, they're created by cattle
-	if service.SelectorLink != "" || FindServiceType(r) == ExternalServiceType || FindServiceType(r) == LbServiceType {
+	serviceType := FindServiceType(r)
+	if service.SelectorLink != "" || serviceType == ExternalServiceType || serviceType == LbServiceType || serviceType == LegacyLbServiceType {
 		return nil
 	}
 
