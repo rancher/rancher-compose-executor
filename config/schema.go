@@ -144,7 +144,7 @@ var schemaDataV1 = `{
         "sysctls": {"$ref": "#/definitions/list_or_dict"},
         "tty": {"type": "boolean"},
         "type": {"type": "string"},
-        "update_strategy": {"type": "object"},
+        "upgrade_strategy": {"type": "object"},
         "ulimits": {
           "type": "object",
           "patternProperties": {
@@ -413,7 +413,7 @@ var servicesSchemaDataV2 = `{
         "read_only": {"type": "boolean"},
         "restart": {"type": "string"},
         "retain_ip": {"type": "boolean"},
-        "scale": {"type": "number"},
+        "scale": {"type": ["number", "string"]},
         "scale_policy": {"type": "object"},
         "security_opt": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
         "shm_size": {"type": ["number", "string"]},
@@ -444,7 +444,7 @@ var servicesSchemaDataV2 = `{
         "tmpfs": {"$ref": "#/definitions/string_or_list"},
         "tty": {"type": "boolean"},
         "type": {"type": "string"},
-        "update_strategy": {"type": "object"},
+        "upgrade_strategy": {"type": "object"},
         "ulimits": {
           "type": "object",
           "patternProperties": {
