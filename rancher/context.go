@@ -27,7 +27,6 @@ type Context struct {
 	PullCached   bool
 	Pull         bool
 	Args         []string
-	DryRun       bool
 
 	Upgrade        bool
 	ForceUpgrade   bool

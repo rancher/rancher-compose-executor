@@ -21,7 +21,7 @@ import (
 type RancherProjectFactory struct {
 }
 
-func (p *RancherProjectFactory) Create(c *cli.Context, dryRun bool) (*project.Project, error) {
+func (p *RancherProjectFactory) Create(c *cli.Context) (*project.Project, error) {
 	context := &rancher.Context{
 		Context: project.Context{
 			ResourceLookup: &lookup.FileResourceLookup{},
@@ -63,7 +63,6 @@ func (p *RancherProjectFactory) Create(c *cli.Context, dryRun bool) (*project.Pr
 	context.Interval = int64(c.Int("interval"))
 	context.ConfirmUpgrade = c.Bool("confirm-upgrade")
 	context.Pull = c.Bool("pull")
-	context.DryRun = dryRun
 
 	return rancher.NewProject(context)
 }
@@ -101,9 +100,9 @@ func Populate(context *project.Context, c *cli.Context) {
 
 type ProjectAction func(project *project.Project, c *cli.Context) error
 
-func WithProject(factory ProjectFactory, action ProjectAction, dryRun bool) func(context *cli.Context) error {
+func WithProject(factory ProjectFactory, action ProjectAction) func(context *cli.Context) error {
 	return func(context *cli.Context) error {
-		p, err := factory.Create(context, dryRun)
+		p, err := factory.Create(context)
 		if err != nil {
 			logrus.Fatalf("Failed to read project: %v", err)
 		}
@@ -115,7 +114,7 @@ func UpCommand(factory ProjectFactory) cli.Command {
 	return cli.Command{
 		Name:   "up",
 		Usage:  "Bring all services up",
-		Action: WithProject(factory, ProjectUp, false),
+		Action: WithProject(factory, ProjectUp),
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "pull, p",
@@ -124,6 +123,10 @@ func UpCommand(factory ProjectFactory) cli.Command {
 			cli.BoolFlag{
 				Name:  "d",
 				Usage: "Do not block and log",
+			},
+			cli.BoolFlag{
+				Name:  "render",
+				Usage: "Display processed Compose files and exit",
 			},
 			cli.BoolFlag{
 				Name:  "upgrade, u, recreate",
@@ -159,14 +162,7 @@ func CreateCommand(factory ProjectFactory) cli.Command {
 	return cli.Command{
 		Name:   "create",
 		Usage:  "Create all services but do not start",
-		Action: WithProject(factory, ProjectCreate, false),
-	}
-}
-
-func RenderCommand(factory ProjectFactory) cli.Command {
-	return cli.Command{
-		Name:   "render",
-		Action: WithProject(factory, ProjectRender, true),
+		Action: WithProject(factory, ProjectCreate),
 	}
 }
 
@@ -184,6 +180,17 @@ func ProjectCreate(p *project.Project, c *cli.Context) error {
 }
 
 func ProjectUp(p *project.Project, c *cli.Context) error {
+	if c.Bool("render") {
+		renderedComposeBytes, err := p.Render()
+		if err != nil {
+			return err
+		}
+		for _, contents := range renderedComposeBytes {
+			fmt.Println(string(contents))
+		}
+		return nil
+	}
+
 	if err := p.Create(context.Background(), options.Create{}, c.Args()...); err != nil {
 		return err
 	}
@@ -198,16 +205,5 @@ func ProjectUp(p *project.Project, c *cli.Context) error {
 		<-make(chan interface{})
 	}
 
-	return nil
-}
-
-func ProjectRender(p *project.Project, c *cli.Context) error {
-	renderedComposeBytes, err := p.Render()
-	if err != nil {
-		return err
-	}
-	for _, contents := range renderedComposeBytes {
-		fmt.Println(string(contents))
-	}
 	return nil
 }

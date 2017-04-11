@@ -89,7 +89,6 @@ func cliMain() {
 	app.Commands = []cli.Command{
 		rancherApp.CreateCommand(factory),
 		rancherApp.UpCommand(factory),
-		rancherApp.RenderCommand(factory),
 	}
 
 	if err := app.Run(os.Args); err != nil {
