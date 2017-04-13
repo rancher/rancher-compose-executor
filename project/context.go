@@ -22,6 +22,8 @@ type Context struct {
 	ComposeFiles        []string
 	ComposeBytes        [][]byte
 	ProjectName         string
+	Version             string
+	PreviousVersion     string
 	isOpen              bool
 	ServiceFactory      ServiceFactory
 	ContainerFactory    ServiceFactory

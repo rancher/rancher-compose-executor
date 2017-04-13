@@ -20,6 +20,16 @@ func constructProjectUpgrade(logger *logrus.Entry, stack *client.Stack, upgradeO
 		variables[k] = v
 	}
 
+	previousCatalogInfo, err := lookup.ParseCatalogConfig([]byte(stack.RancherCompose))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	catalogInfo, err := lookup.ParseCatalogConfig([]byte(upgradeOpts.RancherCompose))
+	if err != nil {
+		return nil, nil, err
+	}
+
 	context := rancher.Context{
 		Context: project.Context{
 			ProjectName: stack.Name,
@@ -31,6 +41,8 @@ func constructProjectUpgrade(logger *logrus.Entry, stack *client.Stack, upgradeO
 			EnvironmentLookup: &lookup.MapEnvLookup{
 				Env: variables,
 			},
+			Version:         catalogInfo.Version,
+			PreviousVersion: previousCatalogInfo.Version,
 		},
 		Url:       fmt.Sprintf("%s/projects/%s/schemas", url, stack.AccountId),
 		AccessKey: accessKey,
@@ -53,6 +65,11 @@ func constructProject(logger *logrus.Entry, stack *client.Stack, url, accessKey,
 		return nil, nil, err
 	}
 
+	catalogInfo, err := lookup.ParseCatalogConfig([]byte(stack.RancherCompose))
+	if err != nil {
+		return nil, nil, err
+	}
+
 	context := rancher.Context{
 		Context: project.Context{
 			ProjectName: stack.Name,
@@ -64,6 +81,7 @@ func constructProject(logger *logrus.Entry, stack *client.Stack, url, accessKey,
 			EnvironmentLookup: &lookup.MapEnvLookup{
 				Env: variables,
 			},
+			Version: catalogInfo.Version,
 		},
 		Url:       fmt.Sprintf("%s/projects/%s/schemas", url, stack.AccountId),
 		AccessKey: accessKey,
