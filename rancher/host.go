@@ -30,6 +30,7 @@ func (f *RancherHostsFactory) Create(projectName string, hostConfigs map[string]
 			projectName: projectName,
 			hostConfig:  keysToCamelCase(config.Dynamic).(map[string]interface{}),
 			count:       count,
+			template:    config.Template,
 		})
 	}
 	return &Hosts{
@@ -103,6 +104,7 @@ type Host struct {
 	projectName string
 	hostConfig  map[string]interface{}
 	count       int
+	template    string
 }
 
 func (h *Host) EnsureItExists(ctx context.Context) error {
@@ -128,7 +130,11 @@ func (h *Host) EnsureItExists(ctx context.Context) error {
 	for i := 1; i < h.count+1; i++ {
 		name := fmt.Sprintf("%s-%s-%d", h.context.Stack.Name, h.name, i)
 		if _, ok := existingNames[name]; !ok {
-			hostsToCreate = append(hostsToCreate, createHostConfig(h.hostConfig, name, h.context.Stack.Id))
+			hostConfig, err := h.createHostConfig(name)
+			if err != nil {
+				return err
+			}
+			hostsToCreate = append(hostsToCreate, hostConfig)
 		}
 	}
 
@@ -142,16 +148,33 @@ func (h *Host) EnsureItExists(ctx context.Context) error {
 	return nil
 }
 
-func createHostConfig(existing map[string]interface{}, name, stackId string) map[string]interface{} {
+func (h *Host) createHostConfig(name string) (map[string]interface{}, error) {
 	hostConfig := map[string]interface{}{}
 
-	for k, v := range existing {
+	for k, v := range h.hostConfig {
 		hostConfig[k] = v
 	}
 
 	hostConfig["name"] = name
 	hostConfig["hostname"] = name
-	hostConfig["stackId"] = stackId
+	hostConfig["stackId"] = h.context.Stack.Id
 
-	return hostConfig
+	if h.template != "" {
+		existingHostTemplates, err := h.context.Client.HostTemplate.List(&client.ListOpts{
+			Filters: map[string]interface{}{
+				"name": h.template,
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		if len(existingHostTemplates.Data) == 0 {
+			return nil, fmt.Errorf("Failed to find host template %s", h.template)
+		}
+
+		hostConfig["hostTemplateId"] = existingHostTemplates.Data[0].Id
+	}
+
+	return hostConfig, nil
 }
