@@ -56,7 +56,8 @@ func (p *Project) Up(ctx context.Context, options options.Up, services ...string
 func (p *Project) Render() ([][]byte, error) {
 	var renderedComposeBytes [][]byte
 	for _, contents := range p.context.ComposeBytes {
-		contents, err := template.Apply(contents, p.context.EnvironmentLookup.Variables())
+		// TODO: figure out story for release variables when using CLI
+		contents, err := template.Apply(contents, template.ReleaseInfo{}, p.context.EnvironmentLookup.Variables())
 		if err != nil {
 			return nil, err
 		}

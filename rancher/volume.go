@@ -103,9 +103,6 @@ func (v *Volume) EnsureItExists(ctx context.Context) error {
 	}
 
 	if volumeResource == nil {
-		if v.external {
-			return fmt.Errorf("Volume %s declared as external, but could not be found. Please create the volume manually and try again.", v.name)
-		}
 		logrus.Infof("Creating volume template %s", v.name)
 		return v.create(ctx)
 	} else {
@@ -123,13 +120,17 @@ func (v *Volume) create(ctx context.Context) error {
 	for k, v := range v.driverOptions {
 		driverOptions[k] = v
 	}
-	_, err := v.context.Client.VolumeTemplate.Create(&client.VolumeTemplate{
+	volumeTemplate := client.VolumeTemplate{
 		Name:         v.name,
 		Driver:       v.driver,
 		DriverOpts:   driverOptions,
 		StackId:      v.context.Stack.Id,
 		PerContainer: v.perContainer,
-	})
+	}
+	if !v.external {
+		volumeTemplate.StackId = v.context.Stack.Id
+	}
+	_, err := v.context.Client.VolumeTemplate.Create(&volumeTemplate)
 	return err
 }
 
