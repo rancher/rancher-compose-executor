@@ -3,8 +3,6 @@ package project
 import (
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"golang.org/x/net/context"
@@ -65,22 +63,6 @@ func NewProject(context *Context) *Project {
 		context.ResourceLookup = &lookup.FileResourceLookup{}
 	}
 
-	if context.EnvironmentLookup == nil {
-		cwd, err := os.Getwd()
-		if err != nil {
-			log.Errorf("Could not get the rooted path name to the current directory: %v", err)
-			return nil
-		}
-		context.EnvironmentLookup = &lookup.ComposableEnvLookup{
-			Lookups: []config.EnvironmentLookup{
-				&lookup.EnvfileLookup{
-					Path: filepath.Join(cwd, ".env"),
-				},
-				&lookup.OsEnvLookup{},
-			},
-		}
-	}
-
 	context.Project = p
 
 	p.listeners = []chan<- events.Event{NewDefaultListener(p)}
@@ -88,10 +70,12 @@ func NewProject(context *Context) *Project {
 	return p
 }
 
-// Parse populates project information based on its context. It sets up the name,
-// the composefile and the composebytes (the composefile content).
+func (p *Project) Open() error {
+	return p.context.open()
+}
+
 func (p *Project) Parse() error {
-	err := p.context.open()
+	err := p.Open()
 	if err != nil {
 		return err
 	}

@@ -35,6 +35,8 @@ func NewQuestionLookup(file string, parent config.EnvironmentLookup) (*QuestionL
 		return nil, err
 	}
 
+	ret.askQuestions()
+
 	return ret, nil
 }
 
@@ -52,6 +54,15 @@ func (q *QuestionLookup) parse(file string) error {
 	}
 
 	return nil
+}
+
+func (q *QuestionLookup) askQuestions() {
+	for key, question := range q.questions {
+		answer := ask(question)
+		if answer != "" {
+			q.variables[key] = answer
+		}
+	}
 }
 
 func ParseQuestions(contents []byte) (map[string]model.Question, error) {
@@ -102,34 +113,16 @@ func ParseCatalogConfig(contents []byte) (*model.RancherCompose, error) {
 	return &model.RancherCompose{}, nil
 }
 
-func join(key, v string) []string {
-	return []string{fmt.Sprintf("%s=%s", key, v)}
-}
-
 func (f *QuestionLookup) Lookup(key string, config *config.ServiceConfig) []string {
 	if v, ok := f.variables[key]; ok {
-		return join(key, v)
+		return []string{fmt.Sprintf("%s=%s", key, v)}
 	}
 
-	if f.parent != nil {
-		parentResult := f.parent.Lookup(key, config)
-		if len(parentResult) > 0 {
-			return parentResult
-		}
-	}
-
-	question, ok := f.questions[key]
-	if !ok {
+	if f.parent == nil {
 		return nil
 	}
 
-	answer := ask(question)
-	if answer != "" {
-		f.variables[key] = answer
-		return join(key, answer)
-	}
-
-	return nil
+	return f.parent.Lookup(key, config)
 }
 
 func ask(question model.Question) string {

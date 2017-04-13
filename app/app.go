@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -124,6 +125,10 @@ func UpCommand(factory ProjectFactory) cli.Command {
 				Usage: "Do not block and log",
 			},
 			cli.BoolFlag{
+				Name:  "render",
+				Usage: "Display processed Compose files and exit",
+			},
+			cli.BoolFlag{
 				Name:  "upgrade, u, recreate",
 				Usage: "Upgrade if service has changed",
 			},
@@ -175,6 +180,17 @@ func ProjectCreate(p *project.Project, c *cli.Context) error {
 }
 
 func ProjectUp(p *project.Project, c *cli.Context) error {
+	if c.Bool("render") {
+		renderedComposeBytes, err := p.Render()
+		if err != nil {
+			return err
+		}
+		for _, contents := range renderedComposeBytes {
+			fmt.Println(string(contents))
+		}
+		return nil
+	}
+
 	if err := p.Create(context.Background(), options.Create{}, c.Args()...); err != nil {
 		return err
 	}
