@@ -31,7 +31,7 @@ func Main() {
 		os.Getenv("CATTLE_URL"),
 		os.Getenv("CATTLE_ACCESS_KEY"),
 		os.Getenv("CATTLE_SECRET_KEY"),
-		nil, eventHandlers, "stack", 10, events.DefaultPingConfig)
+		nil, eventHandlers, "stack", 250, events.DefaultPingConfig)
 	if err != nil {
 		logrus.WithField("error", err).Fatal("Unable to create event router")
 	}
