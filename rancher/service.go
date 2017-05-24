@@ -148,8 +148,8 @@ func (r *RancherService) up(create bool) error {
 	}
 
 	// TODO: revisit whether this is the best place to perform this check
-	if _, ok := r.serviceConfig.Labels["io.rancher.wait_for_healthcheck"]; ok {
-		logrus.Debugf("Detected label io.rancher.wait_for_healthcheck. Polling for health")
+	if _, ok := r.serviceConfig.Labels["io.rancher.service.wait_for_healthcheck"]; ok {
+		logrus.Debugf("Detected label io.rancher.service.wait_for_healthcheck. Polling for health")
 		for {
 			logrus.Debugf("Service %s has health state %s", service.Name, service.HealthState)
 			if service.HealthState == "healthy" {
