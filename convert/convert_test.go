@@ -157,6 +157,17 @@ func TestDNSOpt(t *testing.T) {
 	}, hostCfg.DNSOptions))
 }
 
+func TestInit(t *testing.T) {
+	ctx := project.Context{}
+	sc := &config.ServiceConfig{
+		Init: true,
+	}
+	_, hostCfg, err := Convert(sc, ctx)
+	assert.Nil(t, err)
+
+	assert.True(t, *hostCfg.Init)
+}
+
 func TestMemSwappiness(t *testing.T) {
 	ctx := project.Context{}
 	sc := &config.ServiceConfig{

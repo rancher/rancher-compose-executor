@@ -305,6 +305,7 @@ def test_args(client, compose):
         assert launch_config.sysctls == {
             "net.core.somaxconn": "1024"
         }
+        assert launch_config.init is True
         # TODO: test isolation
         # Not supported
         # assert launch_config.externalLinks == ['foo', 'bar']
