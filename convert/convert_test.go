@@ -7,11 +7,11 @@ import (
 
 	"github.com/docker/docker/api/types/blkiodev"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/libcompose/yaml"
 	shlex "github.com/flynn/go-shlex"
 	"github.com/rancher/rancher-compose-executor/config"
 	"github.com/rancher/rancher-compose-executor/lookup"
 	"github.com/rancher/rancher-compose-executor/project"
+	"github.com/rancher/rancher-compose-executor/yaml"
 	"github.com/stretchr/testify/assert"
 )
 
