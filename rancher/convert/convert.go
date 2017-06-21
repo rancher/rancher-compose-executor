@@ -4,11 +4,11 @@ import (
 	"strings"
 
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/libcompose/yaml"
 	"github.com/rancher/go-rancher/v2"
 	"github.com/rancher/rancher-compose-executor/config"
 	"github.com/rancher/rancher-compose-executor/convert"
 	"github.com/rancher/rancher-compose-executor/project"
+	"github.com/rancher/rancher-compose-executor/yaml"
 )
 
 type ContainerInspect struct {
