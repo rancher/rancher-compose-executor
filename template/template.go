@@ -6,6 +6,7 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig"
+	"github.com/rancher/rancher-compose-executor/template/funcs"
 )
 
 type StackInfo struct {
@@ -21,7 +22,10 @@ func Apply(contents []byte, stackInfo StackInfo, variables map[string]string) ([
 		return contents, nil
 	}
 
-	t, err := template.New("template").Funcs(sprig.TxtFuncMap()).Parse(string(contents))
+	templateFuncs := sprig.TxtFuncMap()
+	templateFuncs["splitPreserveQuotes"] = funcs.SplitPreserveQuotes
+
+	t, err := template.New("template").Funcs(templateFuncs).Parse(string(contents))
 	if err != nil {
 		return nil, err
 	}
