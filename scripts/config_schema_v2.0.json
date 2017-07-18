@@ -210,6 +210,7 @@
         "stop_signal": {"type": "string"},
         "storage_driver": {"type": "object"},
         "sysctls": {"$ref": "#/definitions/list_or_dict"},
+        "init": {"type": "boolean"},
         "tmpfs": {"$ref": "#/definitions/string_or_list"},
         "tty": {"type": "boolean"},
         "type": {"type": "string"},

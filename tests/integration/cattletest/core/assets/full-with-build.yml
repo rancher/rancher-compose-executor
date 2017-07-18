@@ -87,3 +87,4 @@ web:
     isolation: default
     sysctls:
       net.core.somaxconn: "1024"
+    init: true
