@@ -21,7 +21,7 @@ func main() {
 		panic(err)
 	}
 
-	inlinedFile, err := os.Create("config/schema.go")
+	inlinedFile, err := os.Create("parser/schema.go")
 	if err != nil {
 		panic(err)
 	}

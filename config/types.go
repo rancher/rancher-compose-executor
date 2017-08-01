@@ -1,24 +1,10 @@
 package config
 
 import (
-	"sync"
-
 	legacyClient "github.com/rancher/go-rancher/client"
-	"github.com/rancher/go-rancher/v2"
+	"github.com/rancher/go-rancher/v3"
 	"github.com/rancher/rancher-compose-executor/yaml"
 )
-
-// EnvironmentLookup defines methods to provides environment variable loading.
-type EnvironmentLookup interface {
-	Lookup(key string, config *ServiceConfig) []string
-	Variables() map[string]string
-}
-
-// ResourceLookup defines methods to provides file loading.
-type ResourceLookup interface {
-	Lookup(file, relativeTo string) ([]byte, string, error)
-	ResolvePath(path, inFile string) string
-}
 
 // ServiceConfigV1 holds version 1 of libcompose service configuration
 type ServiceConfigV1 struct {
@@ -325,74 +311,19 @@ type Config struct {
 	Networks     map[string]*NetworkConfig    `yaml:"networks,omitempty"`
 	Secrets      map[string]*SecretConfig     `yaml:"secrets,omitempty"`
 	Hosts        map[string]*HostConfig       `yaml:"hosts,omitempty"`
+	SidekickInfo *SidekickInfo                `yaml:"-"`
 }
 
-// NewServiceConfigs initializes a new Configs struct
-func NewServiceConfigs() *ServiceConfigs {
-	return &ServiceConfigs{
-		m: make(map[string]*ServiceConfig),
+func NewConfig() *Config {
+	return &Config{
+		Services:     map[string]*ServiceConfig{},
+		Containers:   map[string]*ServiceConfig{},
+		Dependencies: map[string]*DependencyConfig{},
+		Volumes:      map[string]*VolumeConfig{},
+		Networks:     map[string]*NetworkConfig{},
+		Secrets:      map[string]*SecretConfig{},
+		Hosts:        map[string]*HostConfig{},
 	}
-}
-
-// ServiceConfigs holds a concurrent safe map of ServiceConfig
-type ServiceConfigs struct {
-	m  map[string]*ServiceConfig
-	mu sync.RWMutex
-}
-
-// Has checks if the config map has the specified name
-func (c *ServiceConfigs) Has(name string) bool {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-	_, ok := c.m[name]
-	return ok
-}
-
-// Get returns the config and the presence of the specified name
-func (c *ServiceConfigs) Get(name string) (*ServiceConfig, bool) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-	service, ok := c.m[name]
-	return service, ok
-}
-
-// Add add the specifed config with the specified name
-func (c *ServiceConfigs) Add(name string, service *ServiceConfig) {
-	c.mu.Lock()
-	c.m[name] = service
-	c.mu.Unlock()
-}
-
-// Remove removes the config with the specified name
-func (c *ServiceConfigs) Remove(name string) {
-	c.mu.Lock()
-	delete(c.m, name)
-	c.mu.Unlock()
-}
-
-// Len returns the len of the configs
-func (c *ServiceConfigs) Len() int {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-	return len(c.m)
-}
-
-// Keys returns the names of the config
-func (c *ServiceConfigs) Keys() []string {
-	keys := []string{}
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-	for name := range c.m {
-		keys = append(keys, name)
-	}
-	return keys
-}
-
-// All returns all the config at once
-func (c *ServiceConfigs) All() map[string]*ServiceConfig {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-	return c.m
 }
 
 // RawService is represent a Service in map form unparsed

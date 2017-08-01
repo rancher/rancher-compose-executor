@@ -3,116 +3,77 @@ package handlers
 import (
 	"fmt"
 
-	"github.com/Sirupsen/logrus"
-	"github.com/rancher/go-rancher/v2"
-	"github.com/rancher/rancher-compose-executor/lookup"
+	"net/url"
+	"strings"
+
+	"github.com/davecgh/go-spew/spew"
+	catalog "github.com/rancher/go-rancher/catalog"
+	"github.com/rancher/go-rancher/v3"
 	"github.com/rancher/rancher-compose-executor/project"
-	"github.com/rancher/rancher-compose-executor/rancher"
+	_ "github.com/rancher/rancher-compose-executor/resources"
+	"github.com/rancher/rancher-compose-executor/utils"
 )
 
-func constructProjectUpgrade(logger *logrus.Entry, stack *client.Stack, upgradeOpts client.StackUpgrade, url, accessKey, secretKey string) (*project.Project, map[string]interface{}, error) {
-	variables, err := createVariableMap(stack, upgradeOpts.RancherCompose)
-	if err != nil {
-		return nil, nil, err
+func constructProject(stack *client.Stack, opts client.ClientOpts) (*project.Project, error) {
+	if stack.ExternalId == "" && len(stack.Templates) == 0 {
+		return nil, nil
 	}
 
-	for k, v := range upgradeOpts.Environment {
-		variables[k] = v
-	}
+	// TODO: don't create each time
+	opts.Url = fmt.Sprintf("%s/projects/%s/schemas", opts.Url, stack.AccountId)
+	rancherClient, err := client.NewRancherClient(&opts)
 
-	previousCatalogInfo, err := lookup.ParseCatalogConfig([]byte(stack.RancherCompose))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	catalogInfo, err := lookup.ParseCatalogConfig([]byte(upgradeOpts.RancherCompose))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	context := rancher.Context{
-		Context: project.Context{
-			ProjectName: stack.Name,
-			ComposeBytes: [][]byte{
-				[]byte(upgradeOpts.DockerCompose),
-				[]byte(upgradeOpts.RancherCompose),
-			},
-			ResourceLookup: &lookup.FileResourceLookup{},
-			EnvironmentLookup: &lookup.MapEnvLookup{
-				Env: variables,
-			},
-			Version:         catalogInfo.Version,
-			PreviousVersion: previousCatalogInfo.Version,
-		},
-		Url:       fmt.Sprintf("%s/projects/%s/schemas", url, stack.AccountId),
-		AccessKey: accessKey,
-		SecretKey: secretKey,
-		Upgrade:   true,
-	}
-
-	p, err := rancher.NewProject(&context)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	p.AddListener(NewListenLogger(logger, p))
-	return p, variables, nil
-}
-
-func constructProject(logger *logrus.Entry, stack *client.Stack, url, accessKey, secretKey string) (*rancher.Context, *project.Project, error) {
-	variables, err := createVariableMap(stack, stack.RancherCompose)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	catalogInfo, err := lookup.ParseCatalogConfig([]byte(stack.RancherCompose))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	context := rancher.Context{
-		Context: project.Context{
-			ProjectName: stack.Name,
-			ComposeBytes: [][]byte{
-				[]byte(stack.DockerCompose),
-				[]byte(stack.RancherCompose),
-			},
-			ResourceLookup: &lookup.FileResourceLookup{},
-			EnvironmentLookup: &lookup.MapEnvLookup{
-				Env: variables,
-			},
-			Version: catalogInfo.Version,
-		},
-		Url:       fmt.Sprintf("%s/projects/%s/schemas", url, stack.AccountId),
-		AccessKey: accessKey,
-		SecretKey: secretKey,
-	}
-
-	p, err := rancher.NewProject(&context)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	p.AddListener(NewListenLogger(logger, p))
-	return &context, p, nil
-}
-
-func createVariableMap(stack *client.Stack, rancherCompose string) (map[string]interface{}, error) {
-	variables := map[string]interface{}{}
-	for k, v := range stack.Environment {
-		variables[k] = v
-	}
-
-	questions, err := lookup.ParseQuestions([]byte(rancherCompose))
+	templateVersion, err := loadTemplateVersion(stack, rancherClient)
 	if err != nil {
 		return nil, err
 	}
 
-	for k, question := range questions {
-		if _, ok := variables[k]; !ok {
-			variables[k] = question.Default
+	answers := buildAnswers(stack, templateVersion)
+
+	p := project.NewProject(stack.Name, rancherClient)
+	if templateVersion == nil {
+		return p, p.Load(stack.Templates, answers)
+	}
+
+	return p, p.LoadFromTemplateVersion(*templateVersion, answers)
+}
+
+func buildAnswers(stack *client.Stack, templateVersion *catalog.TemplateVersion) map[string]string {
+	result := map[string]string{}
+	if templateVersion != nil {
+		for _, q := range templateVersion.Questions {
+			result[q.Variable] = q.Default
 		}
 	}
 
-	return variables, nil
+	return utils.MapUnion(result, utils.ToMapString(stack.Answers))
+}
+
+func loadTemplateVersion(stack *client.Stack, client *client.RancherClient) (*catalog.TemplateVersion, error) {
+	if !strings.HasPrefix(stack.ExternalId, "catalog://") {
+		return nil, nil
+	}
+
+	parsed, err := url.Parse(client.GetOpts().Url)
+	if err != nil {
+		return nil, err
+	}
+	parsed.Path = "/v1-catalog/schemas"
+
+	opts := client.GetOpts()
+	catalogClient, err := catalog.NewRancherClient(&catalog.ClientOpts{
+		Url:       parsed.String(),
+		AccessKey: opts.AccessKey,
+		SecretKey: opts.SecretKey,
+	})
+	spew.Dump(catalogClient.GetOpts())
+	if err != nil {
+		return nil, err
+	}
+
+	catalogClient.SetCustomHeaders(map[string]string{
+		"X-API-Project-Id": stack.AccountId,
+	})
+
+	return catalogClient.TemplateVersion.ById(strings.TrimPrefix(stack.ExternalId, "catalog://"))
 }
