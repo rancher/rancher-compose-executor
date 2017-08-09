@@ -223,6 +223,17 @@ func TestStopSignal(t *testing.T) {
 	assert.Equal(t, "SIGTERM", cfg.StopSignal)
 }
 
+func TestStopGracePeriod(t *testing.T) {
+	ctx := project.Context{}
+	sc := &config.ServiceConfig{
+		StopGracePeriod: yaml.DurationStringorInt(5),
+	}
+	cfg, _, err := Convert(sc, ctx)
+	assert.Nil(t, err)
+
+	assert.Equal(t, int64(5), *cfg.StopTimeout)
+}
+
 func TestSysctls(t *testing.T) {
 	ctx := project.Context{}
 	sc := &config.ServiceConfig{

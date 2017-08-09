@@ -297,6 +297,7 @@ def test_args(client, compose):
         assert launch_config.cgroupParent == 'abcd'
         assert launch_config.blkioWeight == 1000
         assert launch_config.stopSignal == 'SIGTERM'
+        assert launch_config.stopTimeout == 10
         assert launch_config.dnsOpt == ['abc']
         assert launch_config.cpuPeriod == 10000
         assert launch_config.memorySwappiness == 100
