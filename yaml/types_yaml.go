@@ -64,11 +64,11 @@ func (s *MemStringorInt) UnmarshalYAML(unmarshal func(interface{}) error) error 
 
 // DurationStringorInt represents a string or an integer
 // the String supports notations like 1m30s for 90 seconds
-type DurationStringorInt int64
+type DurationStringorInt int
 
 // UnmarshalYAML implements the Unmarshaller interface.
 func (s *DurationStringorInt) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var intType int64
+	var intType int
 	if err := unmarshal(&intType); err == nil {
 		*s = DurationStringorInt(intType)
 		return nil

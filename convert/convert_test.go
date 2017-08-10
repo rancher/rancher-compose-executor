@@ -231,7 +231,7 @@ func TestStopGracePeriod(t *testing.T) {
 	cfg, _, err := Convert(sc, ctx)
 	assert.Nil(t, err)
 
-	assert.Equal(t, int64(5), *cfg.StopTimeout)
+	assert.Equal(t, int(5), *cfg.StopTimeout)
 }
 
 func TestSysctls(t *testing.T) {
