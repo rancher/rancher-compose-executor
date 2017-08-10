@@ -139,6 +139,7 @@
         "start_on_create": {"type": "boolean"},
         "stdin_open": {"type": "boolean"},
         "stop_signal": {"type": "string"},
+        "stop_grace_period": {"type": ["number", "string"]},
         "storage_driver": {"type": "object"},
         "sysctls": {"$ref": "#/definitions/list_or_dict"},
         "init": {"type": "boolean"},

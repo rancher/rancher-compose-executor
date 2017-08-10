@@ -82,6 +82,7 @@ services:
     cgroup_parent: abcd
     blkio_weight: 1000
     stop_signal: SIGTERM
+    stop_grace_period: 10
     dns_opt:
     - abc
     cpu_period: 10000
