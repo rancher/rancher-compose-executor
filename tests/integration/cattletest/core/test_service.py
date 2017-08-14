@@ -351,6 +351,30 @@ one:
             assert s.launchConfig.labels['b'] == '0.0.1'
 
 
+def test_environment_name(client):
+    stkname = 'project-' + random_str()
+    rancher_compose = '''
+'''
+    template = '''
+web:
+  image: nginx
+  labels:
+    envname: '{{ .Environment.Name }}'
+'''
+
+    stk = client.create_stack(name=stkname, dockerCompose=template,
+                              rancherCompose=rancher_compose)
+    stk = client.wait_success(stk)
+    stk = client.wait_success(stk.activateservices())
+    assert stk.state == 'active'
+    proj = client.by_id('project', stk.accountId)
+    for s in stk.services():
+        s = client.wait_success(s)
+        assert s.state == 'active'
+        if s.name == 'web':
+            assert s.launchConfig.labels['envname'] == proj.name
+
+
 def test_storage_driver(client):
     template_legacy = '''
 version: '2'
