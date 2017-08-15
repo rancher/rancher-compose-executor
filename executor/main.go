@@ -5,7 +5,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/rancher/event-subscriber/events"
-	"github.com/rancher/go-rancher/v2"
+	"github.com/rancher/go-rancher/v3"
 	"github.com/rancher/rancher-compose-executor/executor/handlers"
 	"github.com/rancher/rancher-compose-executor/version"
 )
@@ -18,17 +18,20 @@ func Main() {
 	logger.Info("Starting rancher-compose-executor")
 
 	eventHandlers := map[string]events.EventHandler{
-		"stack.create":        handlers.WithTimeout(handlers.CreateStack),
-		"stack.upgrade":       handlers.WithTimeout(handlers.UpgradeStack),
-		"stack.finishupgrade": handlers.WithTimeout(handlers.FinishUpgradeStack),
-		"stack.rollback":      handlers.WithTimeout(handlers.RollbackStack),
+		"stack.create": handlers.WithTimeout(handlers.CreateStack),
+		"stack.update": handlers.WithTimeout(handlers.UpdateStack),
 		"ping": func(event *events.Event, apiClient *client.RancherClient) error {
 			return nil
 		},
 	}
 
+	url := os.Getenv("CATTLE_URL")
+	if url == "" {
+		url = "http://localhost:8080/v3"
+	}
+
 	router, err := events.NewEventRouter("rancher-compose-executor", 2000,
-		os.Getenv("CATTLE_URL"),
+		url,
 		os.Getenv("CATTLE_ACCESS_KEY"),
 		os.Getenv("CATTLE_SECRET_KEY"),
 		nil, eventHandlers, "stack", 250, events.DefaultPingConfig)

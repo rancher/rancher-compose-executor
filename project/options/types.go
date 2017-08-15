@@ -7,35 +7,20 @@ type Build struct {
 	Pull        bool
 }
 
-// Delete holds options of compose rm.
-type Delete struct {
-	RemoveVolume  bool
-	RemoveRunning bool
-}
-
-// Down holds options of compose down.
-type Down struct {
-	RemoveVolume  bool
-	RemoveImages  ImageType
-	RemoveOrphans bool
+type Pull struct {
+	Cached bool
 }
 
 // Create holds options of compose create.
-type Create struct {
+type Options struct {
 	NoRecreate    bool
 	ForceRecreate bool
 	NoBuild       bool
 	ForceBuild    bool
-}
+	Services      []string
 
-// Run holds options of compose run.
-type Run struct {
-	Detached bool
-}
-
-// Up holds options of compose up.
-type Up struct {
-	Create
+	Rollback     bool
+	Pull         bool
 }
 
 // ImageType defines the type of image (local, all)

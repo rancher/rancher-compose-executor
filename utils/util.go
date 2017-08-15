@@ -2,7 +2,8 @@ package utils
 
 import (
 	"fmt"
-	"strings"
+
+	"github.com/docker/libcompose/utils"
 )
 
 func NestedMapsToMapInterface(data map[string]interface{}) map[string]interface{} {
@@ -60,24 +61,34 @@ func ToMapInterface(data map[string]string) map[string]interface{} {
 	return ret
 }
 
-func RemoveInterfaceKeys(data interface{}) interface{} {
-	switch value := data.(type) {
-	case map[interface{}]interface{}:
-		ret := map[string]interface{}{}
-		for k, v := range value {
-			ret[fmt.Sprintf("%v", k)] = v
-		}
-		return ret
-	case []interface{}:
-		for i, j := range value {
-			value[i] = RemoveInterfaceKeys(j)
-		}
-	case map[string]interface{}:
-		for k, v := range value {
-			value[k] = RemoveInterfaceKeys(v)
+func ToMapString(data map[string]interface{}) map[string]string {
+	ret := map[string]string{}
+
+	for k, v := range data {
+		if str, ok := v.(string); ok {
+			ret[k] = str
+		} else {
+			ret[k] = fmt.Sprint(v)
 		}
 	}
-	return data
+
+	return ret
+}
+
+func ToMapByte(data map[string]interface{}) map[string][]byte {
+	ret := map[string][]byte{}
+
+	for k, v := range data {
+		if str, ok := v.(string); ok {
+			ret[k] = []byte(str)
+		} else if b, ok := v.([]byte); ok {
+			ret[k] = b
+		} else {
+			ret[k] = []byte(fmt.Sprint(v))
+		}
+	}
+
+	return ret
 }
 
 func MapUnion(left, right map[string]string) map[string]string {
@@ -94,11 +105,20 @@ func MapUnion(left, right map[string]string) map[string]string {
 	return ret
 }
 
-func TrimSplit(str, sep string, count int) []string {
-	result := []string{}
-	for _, i := range strings.SplitN(strings.TrimSpace(str), sep, count) {
-		result = append(result, strings.TrimSpace(i))
+func MapUnionI(left, right map[string]interface{}) map[string]interface{} {
+	ret := map[string]interface{}{}
+
+	for k, v := range left {
+		ret[k] = v
 	}
 
-	return result
+	for k, v := range right {
+		ret[k] = v
+	}
+
+	return ret
+}
+
+func IsSelected(selected []string, name string) bool {
+	return len(selected) == 0 || utils.Contains(selected, name)
 }
