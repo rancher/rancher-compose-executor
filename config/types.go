@@ -185,17 +185,23 @@ type RancherConfig struct {
 	LbConfig                 *LBConfig                        `yaml:"lb_config"`
 	LegacyLoadBalancerConfig *legacyClient.LoadBalancerConfig `yaml:"load_balancer_config,omitempty"`
 
-	Disks    []client.VirtualMachineDisk `yaml:"disks,omitempty"`
-	Memory   yaml.MemStringorInt         `yaml:"memory,omitempty"`
-	Userdata string                      `yaml:"userdata,omitempty"`
-	Vcpu     yaml.StringorInt            `yaml:"vcpu,omitempty"`
-
 	CreateOnly  bool                        `yaml:"create_only,omitempty"`
 	ExternalIps []string                    `yaml:"external_ips,omitempty"`
 	HealthCheck *client.InstanceHealthCheck `yaml:"health_check,omitempty"`
 	RetainIp    bool                        `yaml:"retain_ip,omitempty"`
-	Scale       yaml.StringorInt            `yaml:"scale,omitempty"`
-	Type        string                      `yaml:"type,omitempty"`
+	// rancher vm fields
+	Vcpu     yaml.StringorInt            `yaml:"vcpu,omitempty"`
+	Userdata string                      `yaml:"userdata,omitempty"`
+	Memory   yaml.MemStringorInt         `yaml:"memory,omitempty"`
+	Disks    []client.VirtualMachineDisk `yaml:"disks,omitempty"`
+
+	Type                string           `yaml:"type,omitempty"`
+	Scale               yaml.StringorInt `yaml:"scale,omitempty"`
+	ScaleMin            yaml.StringorInt `yaml:"scale_min,omitempty"`
+	ScaleMax            yaml.StringorInt `yaml:"scale_max,omitempty"`
+	ScaleIncrement      yaml.StringorInt `yaml:"scale_increment,omitempty"`
+	StartOnCreate       bool             `yaml:"start_on_create,omitempty"`
+	MilliCpuReservation yaml.StringorInt `yaml:"milli_cpu_reservation,omitempty"`
 
 	Metadata        map[string]interface{}          `yaml:"metadata,omitempty"`
 	NetworkDriver   *client.NetworkDriver           `yaml:"network_driver,omitempty"`
@@ -305,6 +311,7 @@ type RawConfig struct {
 }
 
 type Config struct {
+	Version      string                       `yaml:"version,omitempty"`
 	Services     map[string]*ServiceConfig    `yaml:"services,omitempty"`
 	Containers   map[string]*ServiceConfig    `yaml:"containers,omitempty"`
 	Dependencies map[string]*DependencyConfig `yaml:"dependencies,omitempty"`

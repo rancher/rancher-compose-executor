@@ -6,6 +6,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/rancher/event-subscriber/events"
 	"github.com/rancher/go-rancher/v3"
+	"github.com/rancher/rancher-compose-executor/composinator"
 	"github.com/rancher/rancher-compose-executor/executor/handlers"
 	"github.com/rancher/rancher-compose-executor/version"
 )
@@ -14,6 +15,14 @@ func Main() {
 	logger := logrus.WithFields(logrus.Fields{
 		"version": version.VERSION,
 	})
+
+	go func() {
+		err := composinator.StartServer()
+		if err != nil {
+			logger.Error(err)
+			os.Exit(1)
+		}
+	}()
 
 	logger.Info("Starting rancher-compose-executor")
 
