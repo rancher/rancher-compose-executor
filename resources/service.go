@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/rancher/rancher-compose-executor/config"
 	"github.com/rancher/rancher-compose-executor/project"
 	"github.com/rancher/rancher-compose-executor/project/options"
@@ -22,8 +23,9 @@ type Service interface {
 }
 
 type Services struct {
-	Project  *project.Project
-	Services map[string]Service
+	Project      *project.Project
+	Services     map[string]Service
+	ServiceOrder []string
 }
 
 func ServicesCreate(p *project.Project) (project.ResourceSet, error) {
@@ -56,6 +58,13 @@ func ServicesCreate(p *project.Project) (project.ResourceSet, error) {
 		}
 	}
 
+	s.ServiceOrder, err = getServiceOrder(s.Project.Config.Containers, s.Project.Config.Services)
+	if err != nil {
+		return nil, err
+	}
+
+	logrus.Infof("Service order: %v", s.ServiceOrder)
+
 	return project.ResourceSet(s), nil
 }
 
@@ -81,7 +90,15 @@ func injectEnv(p *project.Project, config config.ServiceConfig) (*config.Service
 }
 
 func (s *Services) Initialize(ctx context.Context, options options.Options) error {
-	for name, service := range s.Services {
+	/*for name, service := range s.Services {
+		if rutils.IsSelected(options.Services, name) {
+			if err := service.Create(ctx, options); err != nil {
+				return err
+			}
+		}
+	}*/
+	for _, name := range s.ServiceOrder {
+		service := s.Services[name]
 		if rutils.IsSelected(options.Services, name) {
 			if err := service.Create(ctx, options); err != nil {
 				return err
