@@ -1708,6 +1708,46 @@ def test_circle_madness(client, compose):
     assert len(foo3.consumedservices()) == 3
 
 
+def test_variables_json(client, compose):
+    project_name = random_str()
+    compose.check_call(None, '--env-file', 'assets/env-file/env-file.json',
+                       '--verbose', '-f', 'assets/env-file/docker-compose.yml',
+                       '-p', project_name, 'create')
+
+    project = find_one(client.list_stack, name=project_name)
+    service = find_one(project.services)
+
+    assert service.launchConfig.imageUuid == 'docker:nginx'
+    assert service.launchConfig.labels['var'] == 'nginx'
+    assert service.metadata.var == 'E'
+    assert service.metadata.var2 == ''
+    assert service.launchConfig.environment['F'] == "1\n2\n3"
+    assert service.launchConfig.environment['G'] == "\n1\n2\n3\n"
+    assert service.launchConfig.environment['H'] == "1 2 3"
+    assert service.launchConfig.environment['I'] == '123'
+    assert service.launchConfig.environment['J'] == 'true'
+
+
+def test_variables_yaml(client, compose):
+    project_name = random_str()
+    compose.check_call(None, '--env-file', 'assets/env-file/env-file.yaml',
+                       '--verbose', '-f', 'assets/env-file/docker-compose.yml',
+                       '-p', project_name, 'create')
+
+    project = find_one(client.list_stack, name=project_name)
+    service = find_one(project.services)
+
+    assert service.launchConfig.imageUuid == 'docker:nginx'
+    assert service.launchConfig.labels['var'] == 'nginx'
+    assert service.metadata.var == 'E'
+    assert service.metadata.var2 == ''
+    assert service.launchConfig.environment['F'] == "1\n2\n3"
+    assert service.launchConfig.environment['G'] == "\n1\n2\n3\n"
+    assert service.launchConfig.environment['H'] == "1 2 3"
+    assert service.launchConfig.environment['I'] == '123'
+    assert service.launchConfig.environment['J'] == 'true'
+
+
 def test_variables(client, compose):
     project_name = random_str()
     compose.check_call(None, '--env-file', 'assets/env-file/env-file',
@@ -1721,6 +1761,11 @@ def test_variables(client, compose):
     assert service.launchConfig.labels['var'] == 'nginx'
     assert service.metadata.var == 'E'
     assert service.metadata.var2 == ''
+    assert service.launchConfig.environment['F'] == 'false'
+    assert service.launchConfig.environment['G'] == 'test'
+    assert service.launchConfig.environment['H'] == '1 2 3'
+    assert service.launchConfig.environment['I'] == '123'
+    assert service.launchConfig.environment['J'] == 'true'
 
 
 def test_metadata_on_service(client, compose):

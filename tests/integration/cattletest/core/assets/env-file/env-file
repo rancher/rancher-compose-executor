@@ -1,3 +1,9 @@
 A=nginx
+B=
 C=
 D=E
+F=false
+G=test
+H=1 2 3
+I=123
+J=true

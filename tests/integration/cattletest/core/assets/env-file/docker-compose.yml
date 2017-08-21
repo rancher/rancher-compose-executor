@@ -2,3 +2,9 @@ web:
   labels:
     var: $A
   image: ${A}
+  environment:
+    F: ${F}
+    G: ${G}
+    H: ${H}
+    I: ${I}
+    J: ${J}
