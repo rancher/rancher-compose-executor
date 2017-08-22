@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"github.com/docker/libcompose/utils"
 	"github.com/rancher/rancher-compose-executor/config"
+	"github.com/rancher/rancher-compose-executor/utils"
 	"github.com/rancher/rancher-compose-executor/yaml"
 )
 

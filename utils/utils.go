@@ -2,9 +2,61 @@ package utils
 
 import (
 	"fmt"
+	"encoding/json"
 
-	"github.com/docker/libcompose/utils"
+	"github.com/Sirupsen/logrus"
+	"gopkg.in/yaml.v2"
 )
+
+// ConvertByJSON converts a struct (src) to another one (target) using json marshalling/unmarshalling.
+// If the structure are not compatible, this will throw an error as the unmarshalling will fail.
+func ConvertByJSON(src, target interface{}) error {
+	newBytes, err := json.Marshal(src)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(newBytes, target)
+	if err != nil {
+		logrus.Errorf("Failed to unmarshall: %v\n%s", err, string(newBytes))
+	}
+	return err
+}
+
+// Convert converts a struct (src) to another one (target) using yaml marshalling/unmarshalling.
+// If the structure are not compatible, this will throw an error as the unmarshalling will fail.
+func Convert(src, target interface{}) error {
+	newBytes, err := yaml.Marshal(src)
+	if err != nil {
+		return err
+	}
+
+	err = yaml.Unmarshal(newBytes, target)
+	if err != nil {
+		logrus.Errorf("Failed to unmarshall: %v\n%s", err, string(newBytes))
+	}
+	return err
+}
+
+func CopySlice(s []string) []string {
+	if s == nil {
+		return nil
+	}
+	r := make([]string, len(s))
+	copy(r, s)
+	return r
+}
+
+func CopyMap(m map[string]string) map[string]string {
+	if m == nil {
+		return nil
+	}
+	r := map[string]string{}
+	for k, v := range m {
+		r[k] = v
+	}
+	return r
+}
 
 func NestedMapsToMapInterface(data map[string]interface{}) map[string]interface{} {
 	newMapInterface := map[string]interface{}{}
@@ -120,5 +172,5 @@ func MapUnionI(left, right map[string]interface{}) map[string]interface{} {
 }
 
 func IsSelected(selected []string, name string) bool {
-	return len(selected) == 0 || utils.Contains(selected, name)
+	return len(selected) == 0 || Contains(selected, name)
 }

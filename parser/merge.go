@@ -7,13 +7,13 @@ import (
 	"strings"
 
 	"github.com/docker/docker/pkg/urlutil"
-	"github.com/docker/libcompose/utils"
 	"github.com/fatih/structs"
 	"github.com/rancher/go-rancher/catalog"
 	"github.com/rancher/go-rancher/v3"
 	"github.com/rancher/rancher-compose-executor/config"
 	"github.com/rancher/rancher-compose-executor/lookup"
 	"github.com/rancher/rancher-compose-executor/template"
+	"github.com/rancher/rancher-compose-executor/utils"
 	composeYaml "github.com/rancher/rancher-compose-executor/yaml"
 	"gopkg.in/yaml.v2"
 )

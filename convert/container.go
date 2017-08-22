@@ -1,9 +1,9 @@
 package convert
 
 import (
-	"github.com/docker/libcompose/utils"
 	"github.com/rancher/go-rancher/v3"
 	"github.com/rancher/rancher-compose-executor/project"
+	"github.com/rancher/rancher-compose-executor/utils"
 )
 
 func Container(p *project.Project, name string) (*client.Container, error) {

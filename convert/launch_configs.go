@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/docker/libcompose/utils"
 	"github.com/rancher/go-rancher/v3"
 	"github.com/rancher/rancher-compose-executor/config"
 	"github.com/rancher/rancher-compose-executor/project"
+	"github.com/rancher/rancher-compose-executor/utils"
 	"github.com/rancher/rancher-compose-executor/yaml"
 )
 

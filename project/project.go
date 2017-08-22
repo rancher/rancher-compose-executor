@@ -6,7 +6,6 @@ import (
 	"golang.org/x/net/context"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/docker/libcompose/logger"
 	"github.com/rancher/go-rancher/catalog"
 	"github.com/rancher/go-rancher/v3"
 	"github.com/rancher/rancher-compose-executor/config"
@@ -30,7 +29,6 @@ type Project struct {
 	Version              string
 	ResourceLookup       lookup.ResourceLookup
 	ServerResourceLookup lookup.ServerResourceLookup
-	LoggerFactory        logger.Factory
 	Project              *Project
 	TemplateVersion      *catalog.TemplateVersion
 

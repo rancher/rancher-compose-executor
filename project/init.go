@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/libcompose/logger"
 	"github.com/rancher/go-rancher/catalog"
 	"github.com/rancher/go-rancher/v3"
 	"github.com/rancher/rancher-compose-executor/lookup"
@@ -24,10 +23,6 @@ func (p *Project) Load(templates map[string]interface{}, answers map[string]stri
 
 	p.Templates = utils.ToMapByte(templates)
 	p.Answers = answers
-
-	if p.LoggerFactory == nil {
-		p.LoggerFactory = &logger.NullLogger{}
-	}
 
 	if p.ResourceLookup == nil {
 		p.ResourceLookup = &lookup.MemoryResourceLookup{
