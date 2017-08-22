@@ -1,6 +1,6 @@
 package config
 
-import "github.com/docker/libcompose/utils"
+import "github.com/rancher/rancher-compose-executor/utils"
 
 type SecretReferences []SecretReference
 
