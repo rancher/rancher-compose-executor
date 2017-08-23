@@ -85,6 +85,7 @@ services:
     - abc
     cpu_period: 10000
     mem_swappiness: 100
+    milli_cpu_reservation: 10
     oom_kill_disable: true
     ipc: host
     isolation: default

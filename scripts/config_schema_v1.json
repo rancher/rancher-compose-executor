@@ -105,6 +105,7 @@
         "mem_reservation": {"type": ["number", "string"]},
         "memswap_limit": {"type": ["number", "string"]},
         "mem_swappiness": {"type": "integer"},
+        "milli_cpu_reservation": {"type": ["number", "string"]},
         "metadata": {"type": "object"},
         "net": {"type": "string"},
         "network_driver": {"type": "object"},
