@@ -11,9 +11,9 @@ type Stack struct {
 
 	Answers map[string]interface{} `json:"answers,omitempty" yaml:"answers,omitempty"`
 
-	Created string `json:"created,omitempty" yaml:"created,omitempty"`
+	ClusterId string `json:"clusterId,omitempty" yaml:"cluster_id,omitempty"`
 
-	Data map[string]interface{} `json:"data,omitempty" yaml:"data,omitempty"`
+	Created string `json:"created,omitempty" yaml:"created,omitempty"`
 
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
 
@@ -39,11 +39,7 @@ type Stack struct {
 
 	ServiceIds []string `json:"serviceIds,omitempty" yaml:"service_ids,omitempty"`
 
-	StartOnCreate bool `json:"startOnCreate,omitempty" yaml:"start_on_create,omitempty"`
-
 	State string `json:"state,omitempty" yaml:"state,omitempty"`
-
-	System bool `json:"system,omitempty" yaml:"system,omitempty"`
 
 	Templates map[string]interface{} `json:"templates,omitempty" yaml:"templates,omitempty"`
 

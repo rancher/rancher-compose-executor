@@ -31,8 +31,9 @@ func serviceConfigToLaunchConfig(serviceConfig config.ServiceConfig, p *project.
 	launchConfig.Command = strslice.StrSlice(utils.CopySlice(serviceConfig.Command))
 	launchConfig.CpuPeriod = int64(serviceConfig.CPUPeriod)
 	launchConfig.CpuQuota = int64(serviceConfig.CPUQuota)
-	launchConfig.CpuSet = serviceConfig.CPUSet
+	launchConfig.CpuSetCpu = serviceConfig.CPUSet
 	launchConfig.CpuShares = int64(serviceConfig.CPUShares)
+	launchConfig.CreateOnly = serviceConfig.CreateOnly
 	launchConfig.DataVolumesFrom = serviceConfig.VolumesFrom
 	launchConfig.DataVolumes = volumes(serviceConfig, p)
 	launchConfig.Devices = setupDevice(serviceConfig.Devices)

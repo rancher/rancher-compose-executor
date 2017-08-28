@@ -9,9 +9,9 @@ type Instance struct {
 
 	AccountId string `json:"accountId,omitempty" yaml:"account_id,omitempty"`
 
-	Created string `json:"created,omitempty" yaml:"created,omitempty"`
+	ClusterId string `json:"clusterId,omitempty" yaml:"cluster_id,omitempty"`
 
-	Data map[string]interface{} `json:"data,omitempty" yaml:"data,omitempty"`
+	Created string `json:"created,omitempty" yaml:"created,omitempty"`
 
 	DependsOn []DependsOn `json:"dependsOn,omitempty" yaml:"depends_on,omitempty"`
 

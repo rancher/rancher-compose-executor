@@ -9,15 +9,13 @@ type Agent struct {
 
 	AccountId string `json:"accountId,omitempty" yaml:"account_id,omitempty"`
 
-	Created string `json:"created,omitempty" yaml:"created,omitempty"`
+	ClusterId string `json:"clusterId,omitempty" yaml:"cluster_id,omitempty"`
 
-	Data map[string]interface{} `json:"data,omitempty" yaml:"data,omitempty"`
+	Created string `json:"created,omitempty" yaml:"created,omitempty"`
 
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
 
 	Kind string `json:"kind,omitempty" yaml:"kind,omitempty"`
-
-	ManagedConfig bool `json:"managedConfig,omitempty" yaml:"managed_config,omitempty"`
 
 	Name string `json:"name,omitempty" yaml:"name,omitempty"`
 

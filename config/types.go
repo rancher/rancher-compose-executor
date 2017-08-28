@@ -180,27 +180,28 @@ type ServiceConfig struct {
 }
 
 type RancherConfig struct {
+	Certs                    []string                         `yaml:"certs,omitempty"`
+	DefaultCert              string                           `yaml:"default_cert,omitempty"`
 	LbConfig                 *LBConfig                        `yaml:"lb_config"`
 	LegacyLoadBalancerConfig *legacyClient.LoadBalancerConfig `yaml:"load_balancer_config,omitempty"`
-	DefaultCert              string                           `yaml:"default_cert,omitempty"`
-	Certs                    []string                         `yaml:"certs,omitempty"`
 
-	Vcpu     yaml.StringorInt            `yaml:"vcpu,omitempty"`
-	Userdata string                      `yaml:"userdata,omitempty"`
-	Memory   yaml.MemStringorInt         `yaml:"memory,omitempty"`
 	Disks    []client.VirtualMachineDisk `yaml:"disks,omitempty"`
+	Memory   yaml.MemStringorInt         `yaml:"memory,omitempty"`
+	Userdata string                      `yaml:"userdata,omitempty"`
+	Vcpu     yaml.StringorInt            `yaml:"vcpu,omitempty"`
 
-	Type        string                      `yaml:"type,omitempty"`
-	Scale       yaml.StringorInt            `yaml:"scale,omitempty"`
-	RetainIp    bool                        `yaml:"retain_ip,omitempty"`
+	CreateOnly  bool                        `yaml:"create_only,omitempty"`
 	ExternalIps []string                    `yaml:"external_ips,omitempty"`
 	HealthCheck *client.InstanceHealthCheck `yaml:"health_check,omitempty"`
+	RetainIp    bool                        `yaml:"retain_ip,omitempty"`
+	Scale       yaml.StringorInt            `yaml:"scale,omitempty"`
+	Type        string                      `yaml:"type,omitempty"`
 
 	Metadata        map[string]interface{}          `yaml:"metadata,omitempty"`
-	ServiceSchemas  map[string]client.Schema        `yaml:"service_schemas,omitempty"`
-	UpgradeStrategy client.InServiceUpgradeStrategy `yaml:"upgrade_strategy,omitempty"`
-	StorageDriver   *client.StorageDriver           `yaml:"storage_driver,omitempty"`
 	NetworkDriver   *client.NetworkDriver           `yaml:"network_driver,omitempty"`
+	ServiceSchemas  map[string]client.Schema        `yaml:"service_schemas,omitempty"`
+	StorageDriver   *client.StorageDriver           `yaml:"storage_driver,omitempty"`
+	UpgradeStrategy client.InServiceUpgradeStrategy `yaml:"upgrade_strategy,omitempty"`
 }
 
 // TODO: json tags needed?
