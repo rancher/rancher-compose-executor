@@ -29,6 +29,8 @@ func Service(p *project.Project, name string) (*client.Service, error) {
 		SecondaryLaunchConfigs: secondaryLaunchConfigs,
 	}
 
+	populateCreateOnly(&service)
+
 	if service.NetworkDriver != nil {
 		service.NetworkDriver.CniConfig = utils.NestedMapsToMapInterface(service.NetworkDriver.CniConfig)
 	}
@@ -38,6 +40,17 @@ func Service(p *project.Project, name string) (*client.Service, error) {
 	}
 
 	return &service, nil
+}
+
+func populateCreateOnly(service *client.Service) {
+	if service.LaunchConfig.CreateOnly {
+		service.CreateOnly = true
+	}
+	for _, secondaryLaunchConfig := range service.SecondaryLaunchConfigs {
+		if secondaryLaunchConfig.CreateOnly {
+			service.CreateOnly = true
+		}
+	}
 }
 
 func max(i, j int64) int64 {

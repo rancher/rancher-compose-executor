@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	catalog "github.com/rancher/go-rancher/catalog"
 	"github.com/rancher/go-rancher/v3"
 	"github.com/rancher/rancher-compose-executor/project"
@@ -66,7 +65,6 @@ func loadTemplateVersion(stack *client.Stack, client *client.RancherClient) (*ca
 		AccessKey: opts.AccessKey,
 		SecretKey: opts.SecretKey,
 	})
-	spew.Dump(catalogClient.GetOpts())
 	if err != nil {
 		return nil, err
 	}

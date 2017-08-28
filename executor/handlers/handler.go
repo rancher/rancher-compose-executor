@@ -60,10 +60,7 @@ func stackUp(event *events.Event, apiClient *client.RancherClient, forceUp bool)
 		return err
 	}
 
-	fields, _ := stack.Data["fields"].(map[string]interface{})
-	startOnCreate, _ := fields["startOnCreate"].(bool)
-
-	if forceUp || startOnCreate {
+	if forceUp {
 		return project.Up(context.Background(), options.Options{})
 	}
 
