@@ -7,11 +7,9 @@ const (
 type Network struct {
 	Resource
 
-	AccountId string `json:"accountId,omitempty" yaml:"account_id,omitempty"`
+	ClusterId string `json:"clusterId,omitempty" yaml:"cluster_id,omitempty"`
 
 	Created string `json:"created,omitempty" yaml:"created,omitempty"`
-
-	Data map[string]interface{} `json:"data,omitempty" yaml:"data,omitempty"`
 
 	DefaultPolicyAction string `json:"defaultPolicyAction,omitempty" yaml:"default_policy_action,omitempty"`
 

@@ -13,15 +13,17 @@ type StorageDriverService struct {
 
 	BatchSize int64 `json:"batchSize,omitempty" yaml:"batch_size,omitempty"`
 
+	ClusterId string `json:"clusterId,omitempty" yaml:"cluster_id,omitempty"`
+
 	CompleteUpdate bool `json:"completeUpdate,omitempty" yaml:"complete_update,omitempty"`
 
 	CreateIndex int64 `json:"createIndex,omitempty" yaml:"create_index,omitempty"`
 
+	CreateOnly bool `json:"createOnly,omitempty" yaml:"create_only,omitempty"`
+
 	Created string `json:"created,omitempty" yaml:"created,omitempty"`
 
 	CurrentScale int64 `json:"currentScale,omitempty" yaml:"current_scale,omitempty"`
-
-	Data map[string]interface{} `json:"data,omitempty" yaml:"data,omitempty"`
 
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
 
@@ -83,13 +85,9 @@ type StorageDriverService struct {
 
 	StartFirst bool `json:"startFirst,omitempty" yaml:"start_first,omitempty"`
 
-	StartOnCreate bool `json:"startOnCreate,omitempty" yaml:"start_on_create,omitempty"`
-
 	State string `json:"state,omitempty" yaml:"state,omitempty"`
 
 	StorageDriver StorageDriver `json:"storageDriver,omitempty" yaml:"storage_driver,omitempty"`
-
-	System bool `json:"system,omitempty" yaml:"system,omitempty"`
 
 	Transitioning string `json:"transitioning,omitempty" yaml:"transitioning,omitempty"`
 
