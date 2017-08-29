@@ -15,7 +15,19 @@ import (
 
 func (p *Project) LoadFromTemplateVersion(templateVersion catalog.TemplateVersion, answers map[string]string) error {
 	p.TemplateVersion = &templateVersion
-	return p.Load(templateVersion.Files, answers)
+
+	defaultedAnswers := map[string]string{}
+	for k, v := range answers {
+		defaultedAnswers[k] = v
+	}
+
+	for _, question := range templateVersion.Questions {
+		if _, found := defaultedAnswers[question.Variable]; !found {
+			defaultedAnswers[question.Variable] = question.Default
+		}
+	}
+
+	return p.Load(templateVersion.Files, defaultedAnswers)
 }
 
 func (p *Project) Load(templates map[string]interface{}, answers map[string]string) error {
