@@ -19,8 +19,8 @@ type Options struct {
 	ForceBuild    bool
 	Services      []string
 
-	Rollback     bool
-	Pull         bool
+	Rollback bool
+	Pull     bool
 }
 
 // ImageType defines the type of image (local, all)

@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 
 	"github.com/Sirupsen/logrus"
 	"gopkg.in/yaml.v2"

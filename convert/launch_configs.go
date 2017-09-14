@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	LegacyLBImage       = "rancher/load-balancer-service"
+	LegacyLBImage = "rancher/load-balancer-service"
 )
 
 func createLaunchConfigs(project *project.Project, name string) (client.LaunchConfig, []client.LaunchConfig, error) {

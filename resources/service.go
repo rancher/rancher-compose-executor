@@ -81,7 +81,7 @@ func injectEnv(p *project.Project, config config.ServiceConfig) (*config.Service
 		}
 
 		if val, ok := p.Answers[env]; ok {
-			parsedEnv = append(parsedEnv, fmt.Sprintf("%s=%s"), env, val)
+			parsedEnv = append(parsedEnv, fmt.Sprintf("%s=%s", env, val))
 		}
 	}
 
