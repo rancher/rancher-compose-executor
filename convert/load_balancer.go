@@ -40,7 +40,6 @@ func populateLbFields(legacy bool, resourceLookup lookup.ServerResourceLookup, c
 		DefaultCertificateId: config.DefaultCert,
 	}
 
-
 	portRules := config.LbConfig.PortRules
 
 	if legacy {

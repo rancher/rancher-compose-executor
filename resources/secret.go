@@ -16,10 +16,10 @@ func SecretsCreate(p *project.Project) (project.ResourceSet, error) {
 	secrets := make([]*Secret, 0, len(p.Config.Secrets))
 	for name, config := range p.Config.Secrets {
 		secrets = append(secrets, &Secret{
-			project: p,
-			name:        name,
-			file:        config.File,
-			external:    config.External,
+			project:  p,
+			name:     name,
+			file:     config.File,
+			external: config.External,
 		})
 	}
 	return &Secrets{

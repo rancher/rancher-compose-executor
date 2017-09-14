@@ -80,7 +80,7 @@ func toCamelCase(s string) string {
 }
 
 type Hosts struct {
-	hosts   []*Host
+	hosts []*Host
 }
 
 func (h *Hosts) Initialize(ctx context.Context, _ options.Options) error {
