@@ -46,7 +46,7 @@ func NewProject(name string, client *client.RancherClient, cluster *client.Clust
 }
 
 func (p *Project) load(file string, bytes []byte) error {
-	config, err := parser.Merge(p.Config.Services, p.Answers, p.ResourceLookup, p.TemplateVersion, file, bytes)
+	config, err := parser.Merge(p.Config.Services, p.Answers, p.ResourceLookup, p.TemplateVersion, p.Cluster, file, bytes)
 	if err != nil {
 		return fmt.Errorf("Could not parse config: %v", err)
 	}

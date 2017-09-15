@@ -5,11 +5,17 @@ import (
 	"strings"
 	"text/template"
 
+	"fmt"
 	"github.com/rancher/go-rancher/catalog"
+	"github.com/rancher/go-rancher/v3"
 	"github.com/rancher/rancher-compose-executor/template/funcs"
 )
 
-func Apply(contents []byte, templateVersion *catalog.TemplateVersion, variables map[string]string) ([]byte, error) {
+type ClusterInfo struct {
+	Embedded string
+}
+
+func Apply(contents []byte, templateVersion *catalog.TemplateVersion, cluster *client.Cluster, variables map[string]string) ([]byte, error) {
 	// Skip templating if contents begin with '# notemplating'
 	trimmedContents := strings.TrimSpace(string(contents))
 	if strings.HasPrefix(trimmedContents, "#notemplating") || strings.HasPrefix(trimmedContents, "# notemplating") {
@@ -26,6 +32,9 @@ func Apply(contents []byte, templateVersion *catalog.TemplateVersion, variables 
 		"Values":  variables,
 		"Release": templateVersion,
 		"Stack":   templateVersion,
+		"Cluster": ClusterInfo{
+			Embedded: fmt.Sprint(cluster.Embedded),
+		},
 	})
 	return buf.Bytes(), nil
 }

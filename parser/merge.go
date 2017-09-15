@@ -121,9 +121,9 @@ func createRawConfig(contents []byte) (*config.RawConfig, error) {
 }
 
 // Merge merges a compose file into an existing set of service configs
-func Merge(existingServices map[string]*config.ServiceConfig, vars map[string]string, resourceLookup lookup.ResourceLookup, templateVersion *catalog.TemplateVersion, file string, contents []byte) (*config.Config, error) {
+func Merge(existingServices map[string]*config.ServiceConfig, vars map[string]string, resourceLookup lookup.ResourceLookup, templateVersion *catalog.TemplateVersion, cluster *client.Cluster, file string, contents []byte) (*config.Config, error) {
 	var err error
-	contents, err = template.Apply(contents, templateVersion, vars)
+	contents, err = template.Apply(contents, templateVersion, cluster, vars)
 	if err != nil {
 		return nil, err
 	}
