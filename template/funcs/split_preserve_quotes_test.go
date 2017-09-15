@@ -9,19 +9,19 @@ import (
 func TestSplitPreserveQuotes(t *testing.T) {
 	assert.Equal(t, []string{
 		"--a",
-	}, SplitPreserveQuotes("--a"))
+	}, splitPreserveQuotes("--a"))
 	assert.Equal(t, []string{
 		"--a",
 		"--b",
-	}, SplitPreserveQuotes("--a --b"))
+	}, splitPreserveQuotes("--a --b"))
 	assert.Equal(t, []string{
 		"--a",
 		"--b='c d'",
 		"--e='f'",
-	}, SplitPreserveQuotes("--a --b='c d' --e='f'"))
+	}, splitPreserveQuotes("--a --b='c d' --e='f'"))
 	assert.Equal(t, []string{
 		"--a",
 		"--b=\"c d\"",
 		"--e=\"f\"",
-	}, SplitPreserveQuotes("--a --b=\"c d\" --e=\"f\""))
+	}, splitPreserveQuotes("--a --b=\"c d\" --e=\"f\""))
 }
