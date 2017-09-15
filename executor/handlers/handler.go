@@ -12,7 +12,7 @@ import (
 )
 
 func CreateStack(event *events.Event, apiClient *client.RancherClient) error {
-	return doUp(event, apiClient, "Create Stack", false)
+	return doUp(event, apiClient, "Create Stack", true)
 }
 
 func UpdateStack(event *events.Event, apiClient *client.RancherClient) error {
