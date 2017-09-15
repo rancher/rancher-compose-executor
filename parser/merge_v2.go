@@ -10,8 +10,8 @@ import (
 	"github.com/rancher/rancher-compose-executor/utils"
 )
 
-// MergeServicesV2 merges a v2 compose file into an existing set of service configs
-func MergeServicesV2(vars map[string]string, resourceLookup lookup.ResourceLookup, file string, datas config.RawServiceMap) (map[string]*config.ServiceConfig, error) {
+// mergeServicesV2 merges a v2 compose file into an existing set of service configs
+func mergeServicesV2(vars map[string]string, resourceLookup lookup.ResourceLookup, file string, datas config.RawServiceMap) (map[string]*config.ServiceConfig, error) {
 	if err := validateV2(datas); err != nil {
 		return nil, err
 	}
@@ -77,13 +77,13 @@ func parseV2(resourceLookup lookup.ResourceLookup, vars map[string]string, inFil
 			return nil, err
 		}
 
-		rawConfig, err := CreateRawConfig(bytes)
+		rawConfig, err := createRawConfig(bytes)
 		if err != nil {
 			return nil, err
 		}
 		baseRawServices := rawConfig.Services
 
-		if err = InterpolateRawServiceMap(&baseRawServices, vars); err != nil {
+		if err = interpolateRawServiceMap(&baseRawServices, vars); err != nil {
 			return nil, err
 		}
 

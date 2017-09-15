@@ -308,29 +308,33 @@ type RawConfig struct {
 	Networks     map[string]interface{} `yaml:"networks,omitempty"`
 	Secrets      map[string]interface{} `yaml:"secrets,omitempty"`
 	Hosts        map[string]interface{} `yaml:"hosts,omitempty"`
+
+	KubernetesResources map[string]interface{} `yaml:"kubernetes_resources,omitempty"`
 }
 
 type Config struct {
-	Version      string                       `yaml:"version,omitempty"`
-	Services     map[string]*ServiceConfig    `yaml:"services,omitempty"`
-	Containers   map[string]*ServiceConfig    `yaml:"containers,omitempty"`
-	Dependencies map[string]*DependencyConfig `yaml:"dependencies,omitempty"`
-	Volumes      map[string]*VolumeConfig     `yaml:"volumes,omitempty"`
-	Networks     map[string]*NetworkConfig    `yaml:"networks,omitempty"`
-	Secrets      map[string]*SecretConfig     `yaml:"secrets,omitempty"`
-	Hosts        map[string]*HostConfig       `yaml:"hosts,omitempty"`
-	SidekickInfo *SidekickInfo                `yaml:"-"`
+	Version             string                       `yaml:"version,omitempty"`
+	Services            map[string]*ServiceConfig    `yaml:"services,omitempty"`
+	Containers          map[string]*ServiceConfig    `yaml:"containers,omitempty"`
+	Dependencies        map[string]*DependencyConfig `yaml:"dependencies,omitempty"`
+	Volumes             map[string]*VolumeConfig     `yaml:"volumes,omitempty"`
+	Networks            map[string]*NetworkConfig    `yaml:"networks,omitempty"`
+	Secrets             map[string]*SecretConfig     `yaml:"secrets,omitempty"`
+	Hosts               map[string]*HostConfig       `yaml:"hosts,omitempty"`
+	KubernetesResources map[string]interface{}       `yaml:"kubernetes_resources,omitempty"`
+	SidekickInfo        *SidekickInfo                `yaml:"-"`
 }
 
 func NewConfig() *Config {
 	return &Config{
-		Services:     map[string]*ServiceConfig{},
-		Containers:   map[string]*ServiceConfig{},
-		Dependencies: map[string]*DependencyConfig{},
-		Volumes:      map[string]*VolumeConfig{},
-		Networks:     map[string]*NetworkConfig{},
-		Secrets:      map[string]*SecretConfig{},
-		Hosts:        map[string]*HostConfig{},
+		Services:            map[string]*ServiceConfig{},
+		Containers:          map[string]*ServiceConfig{},
+		Dependencies:        map[string]*DependencyConfig{},
+		Volumes:             map[string]*VolumeConfig{},
+		Networks:            map[string]*NetworkConfig{},
+		Secrets:             map[string]*SecretConfig{},
+		Hosts:               map[string]*HostConfig{},
+		KubernetesResources: map[string]interface{}{},
 	}
 }
 

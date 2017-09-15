@@ -13,7 +13,7 @@ import (
 	"github.com/rancher/rancher-compose-executor/utils"
 )
 
-func constructProject(stack *client.Stack, opts client.ClientOpts) (*project.Project, error) {
+func constructProject(stack *client.Stack, cluster *client.Cluster, opts client.ClientOpts) (*project.Project, error) {
 	if stack.ExternalId == "" && len(stack.Templates) == 0 {
 		return nil, nil
 	}
@@ -29,7 +29,7 @@ func constructProject(stack *client.Stack, opts client.ClientOpts) (*project.Pro
 
 	answers := buildAnswers(stack, templateVersion)
 
-	p := project.NewProject(stack.Name, rancherClient)
+	p := project.NewProject(stack.Name, rancherClient, cluster)
 	if templateVersion == nil {
 		return p, p.Load(stack.Templates, answers)
 	}

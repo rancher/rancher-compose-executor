@@ -42,12 +42,19 @@ func stackUp(event *events.Event, apiClient *client.RancherClient, forceUp bool)
 	if err != nil {
 		return err
 	}
-
 	if stack == nil {
 		return errors.New("Failed to find stack")
 	}
 
-	project, err := constructProject(stack, *apiClient.GetOpts())
+	cluster, err := apiClient.Cluster.ById(stack.ClusterId)
+	if err != nil {
+		return err
+	}
+	if cluster == nil {
+		return errors.New("Failed to find cluster")
+	}
+
+	project, err := constructProject(stack, cluster, *apiClient.GetOpts())
 	if err != nil || project == nil {
 		return err
 	}

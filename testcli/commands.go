@@ -83,8 +83,14 @@ func getProject(c *cli.Context) (*project.Project, error) {
 	}
 
 	projectName := c.GlobalString("project-name")
+	clusterId := c.GlobalString("cluster-id")
 
-	p := project.NewProject(projectName, rancherClient)
+	cluster, err := rancherClient.Cluster.ById(clusterId)
+	if err != nil {
+		return nil, err
+	}
+
+	p := project.NewProject(projectName, rancherClient, cluster)
 	return p, p.Load(files, variables)
 }
 
