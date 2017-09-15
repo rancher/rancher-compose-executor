@@ -112,11 +112,15 @@ func (s *Services) Start(ctx context.Context, options options.Options) error {
 	g, ctx := errgroup.WithContext(ctx)
 	for name, service := range s.Services {
 		if rutils.IsSelected(options.Services, name) {
-			g.Go(func() error {
-				return service.Up(ctx, options)
-			})
+			g.Go(up(service, options, ctx))
 		}
 	}
 
 	return g.Wait()
+}
+
+func up(ser Service, options options.Options, ctx context.Context) func() error {
+	return func() error {
+		return ser.Up(ctx, options)
+	}
 }
