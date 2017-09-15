@@ -5,7 +5,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/Masterminds/sprig"
 	"github.com/rancher/go-rancher/catalog"
 	"github.com/rancher/rancher-compose-executor/template/funcs"
 )
@@ -17,10 +16,7 @@ func Apply(contents []byte, templateVersion *catalog.TemplateVersion, variables 
 		return contents, nil
 	}
 
-	templateFuncs := sprig.TxtFuncMap()
-	templateFuncs["splitPreserveQuotes"] = funcs.SplitPreserveQuotes
-
-	t, err := template.New("template").Funcs(templateFuncs).Parse(string(contents))
+	t, err := template.New("template").Funcs(funcs.Funcs).Parse(string(contents))
 	if err != nil {
 		return nil, err
 	}

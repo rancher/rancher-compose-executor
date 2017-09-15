@@ -5,7 +5,7 @@ import (
 	"unicode"
 )
 
-func SplitPreserveQuotes(s string) []string {
+func splitPreserveQuotes(s string) []string {
 	var pieces []string
 	var buffer bytes.Buffer
 	inQuotes := false
