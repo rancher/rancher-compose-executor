@@ -58,6 +58,10 @@ type KubernetesResources struct {
 }
 
 func (h *KubernetesResources) Initialize(ctx context.Context, _ options.Options) error {
+	if h.cluster.K8sClientConfig == nil {
+		return nil
+	}
+
 	f, err := ioutil.TempFile("", "")
 	if err != nil {
 		return err
