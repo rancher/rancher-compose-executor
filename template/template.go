@@ -12,7 +12,8 @@ import (
 )
 
 type ClusterInfo struct {
-	Embedded string
+	Embedded      string
+	Orchestration string
 }
 
 func Apply(contents []byte, templateVersion *catalog.TemplateVersion, cluster *client.Cluster, variables map[string]string) ([]byte, error) {
@@ -33,7 +34,8 @@ func Apply(contents []byte, templateVersion *catalog.TemplateVersion, cluster *c
 		"Release": templateVersion,
 		"Stack":   templateVersion,
 		"Cluster": ClusterInfo{
-			Embedded: fmt.Sprint(cluster.Embedded),
+			Embedded:      fmt.Sprint(cluster.Embedded),
+			Orchestration: cluster.Orchestration,
 		},
 	})
 	return buf.Bytes(), nil
