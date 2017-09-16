@@ -12,6 +12,8 @@ import (
 	"github.com/rancher/go-rancher/v3"
 	"github.com/rancher/rancher-compose-executor/config"
 	"github.com/rancher/rancher-compose-executor/lookup"
+	"github.com/rancher/rancher-compose-executor/parser/interpolation"
+	"github.com/rancher/rancher-compose-executor/parser/kubernetes"
 	"github.com/rancher/rancher-compose-executor/template"
 	"github.com/rancher/rancher-compose-executor/utils"
 	composeYaml "github.com/rancher/rancher-compose-executor/yaml"
@@ -38,8 +40,19 @@ func transferFields(from, to config.RawService, prefixField string, instance int
 	}
 }
 
-// Createconfig.RawConfig unmarshals contents to config and creates config based on version
-func CreateRawConfig(contents []byte) (*config.RawConfig, error) {
+func createRawConfig(contents []byte) (*config.RawConfig, error) {
+	resourceName, resource, err := kubernetes.GetResource(contents)
+	if err != nil {
+		return nil, err
+	}
+	if resource != nil {
+		return &config.RawConfig{
+			KubernetesResources: map[string]interface{}{
+				resourceName: resource,
+			},
+		}, nil
+	}
+
 	var rawConfig config.RawConfig
 	if err := yaml.Unmarshal(contents, &rawConfig); err != nil {
 		return nil, err
@@ -108,14 +121,14 @@ func CreateRawConfig(contents []byte) (*config.RawConfig, error) {
 }
 
 // Merge merges a compose file into an existing set of service configs
-func Merge(existingServices map[string]*config.ServiceConfig, vars map[string]string, resourceLookup lookup.ResourceLookup, templateVersion *catalog.TemplateVersion, file string, contents []byte) (*config.Config, error) {
+func Merge(existingServices map[string]*config.ServiceConfig, vars map[string]string, resourceLookup lookup.ResourceLookup, templateVersion *catalog.TemplateVersion, cluster *client.Cluster, file string, contents []byte) (*config.Config, error) {
 	var err error
-	contents, err = template.Apply(contents, templateVersion, vars)
+	contents, err = template.Apply(contents, templateVersion, cluster, vars)
 	if err != nil {
 		return nil, err
 	}
 
-	rawConfig, err := CreateRawConfig(contents)
+	rawConfig, err := createRawConfig(contents)
 	if err != nil {
 		return nil, err
 	}
@@ -124,22 +137,22 @@ func Merge(existingServices map[string]*config.ServiceConfig, vars map[string]st
 	baseRawContainers := rawConfig.Containers
 
 	// TODO: just interpolate at the map level earlier
-	if err := InterpolateRawServiceMap(&baseRawServices, vars); err != nil {
+	if err := interpolateRawServiceMap(&baseRawServices, vars); err != nil {
 		return nil, err
 	}
-	if err := InterpolateRawServiceMap(&baseRawContainers, vars); err != nil {
+	if err := interpolateRawServiceMap(&baseRawContainers, vars); err != nil {
 		return nil, err
 	}
 
 	for k, v := range rawConfig.Volumes {
-		if err := Interpolate(k, &v, vars); err != nil {
+		if err := interpolation.Interpolate(k, &v, vars); err != nil {
 			return nil, err
 		}
 		rawConfig.Volumes[k] = v
 	}
 
 	for k, v := range rawConfig.Networks {
-		if err := Interpolate(k, &v, vars); err != nil {
+		if err := interpolation.Interpolate(k, &v, vars); err != nil {
 			return nil, err
 		}
 		rawConfig.Networks[k] = v
@@ -154,24 +167,15 @@ func Merge(existingServices map[string]*config.ServiceConfig, vars map[string]st
 		return nil, err
 	}
 
-	baseRawServices, err = TryConvertStringsToInts(baseRawServices, getRancherConfigObjects())
-	if err != nil {
-		return nil, err
-	}
-	baseRawContainers, err = TryConvertStringsToInts(baseRawContainers, getRancherConfigObjects())
-	if err != nil {
-		return nil, err
-	}
-
 	var serviceConfigs map[string]*config.ServiceConfig
 	if rawConfig.Version == "2" {
 		var err error
-		serviceConfigs, err = MergeServicesV2(vars, resourceLookup, file, baseRawServices)
+		serviceConfigs, err = mergeServicesV2(vars, resourceLookup, file, baseRawServices)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		serviceConfigsV1, err := MergeServicesV1(vars, resourceLookup, file, baseRawServices)
+		serviceConfigsV1, err := mergeServicesV1(vars, resourceLookup, file, baseRawServices)
 		if err != nil {
 			return nil, err
 		}
@@ -202,7 +206,7 @@ func Merge(existingServices map[string]*config.ServiceConfig, vars map[string]st
 	var containerConfigs map[string]*config.ServiceConfig
 	if rawConfig.Version == "2" {
 		var err error
-		containerConfigs, err = MergeServicesV2(vars, resourceLookup, file, baseRawContainers)
+		containerConfigs, err = mergeServicesV2(vars, resourceLookup, file, baseRawContainers)
 		if err != nil {
 			return nil, err
 		}
@@ -238,20 +242,21 @@ func Merge(existingServices map[string]*config.ServiceConfig, vars map[string]st
 	}
 
 	return &config.Config{
-		Services:     serviceConfigs,
-		Containers:   containerConfigs,
-		Dependencies: dependencies,
-		Volumes:      volumes,
-		Networks:     networks,
-		Secrets:      secrets,
-		Hosts:        hosts,
+		Services:            serviceConfigs,
+		Containers:          containerConfigs,
+		Dependencies:        dependencies,
+		Volumes:             volumes,
+		Networks:            networks,
+		Secrets:             secrets,
+		Hosts:               hosts,
+		KubernetesResources: rawConfig.KubernetesResources,
 	}, nil
 }
 
-func InterpolateRawServiceMap(baseRawServices *config.RawServiceMap, vars map[string]string) error {
+func interpolateRawServiceMap(baseRawServices *config.RawServiceMap, vars map[string]string) error {
 	for k, v := range *baseRawServices {
 		for k2, v2 := range v {
-			if err := Interpolate(k2, &v2, vars); err != nil {
+			if err := interpolation.Interpolate(k2, &v2, vars); err != nil {
 				return err
 			}
 			(*baseRawServices)[k][k2] = v2

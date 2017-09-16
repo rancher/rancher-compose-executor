@@ -5,7 +5,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/rancher/go-rancher/catalog"
 	"github.com/rancher/go-rancher/v3"
 	"github.com/rancher/rancher-compose-executor/config"
@@ -32,23 +31,24 @@ type Project struct {
 	Project              *Project
 	TemplateVersion      *catalog.TemplateVersion
 
-	Client *client.RancherClient
-	Stack  *client.Stack
+	Client  *client.RancherClient
+	Stack   *client.Stack
+	Cluster *client.Cluster
 }
 
-func NewProject(name string, client *client.RancherClient) *Project {
+func NewProject(name string, client *client.RancherClient, cluster *client.Cluster) *Project {
 	return &Project{
-		Config: config.NewConfig(),
-		Name:   name,
-		Client: client,
+		Config:  config.NewConfig(),
+		Name:    name,
+		Cluster: cluster,
+		Client:  client,
 	}
 }
 
 func (p *Project) load(file string, bytes []byte) error {
-	config, err := parser.Merge(p.Config.Services, p.Answers, p.ResourceLookup, p.TemplateVersion, file, bytes)
+	config, err := parser.Merge(p.Config.Services, p.Answers, p.ResourceLookup, p.TemplateVersion, p.Cluster, file, bytes)
 	if err != nil {
-		log.Errorf("Could not parse config for project %s : %v", p.Name, err)
-		return err
+		return fmt.Errorf("Could not parse config: %v", err)
 	}
 	for name, config := range config.Services {
 		p.Config.Services[name] = config
@@ -70,6 +70,9 @@ func (p *Project) load(file string, bytes []byte) error {
 	}
 	for name, config := range config.Hosts {
 		p.Config.Hosts[name] = config
+	}
+	for name, resource := range config.KubernetesResources {
+		p.Config.KubernetesResources[name] = resource
 	}
 
 	return nil

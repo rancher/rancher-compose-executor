@@ -9,5 +9,6 @@ func init() {
 		SecretsCreate,
 		VolumesCreate,
 		ServicesCreate,
+		KubernetesResourcesCreate,
 	)
 }
