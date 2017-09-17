@@ -43,11 +43,16 @@ func KubernetesResourcesCreate(p *project.Project) (project.ResourceSet, error) 
 	if err != nil {
 		return nil, err
 	}
+	account, err := p.Client.Account.ById(p.Stack.AccountId)
+	if err != nil {
+		return nil, err
+	}
 	u.Path = path.Join("/k8s/clusters", p.Cluster.Id)
 	return &KubernetesResources{
 		resources: p.Config.KubernetesResources,
 		cluster:   p.Cluster,
 		endpoint:  u.String(),
+		namespace: account.ExternalId,
 	}, nil
 }
 
@@ -55,6 +60,7 @@ type KubernetesResources struct {
 	resources map[string]interface{}
 	cluster   *client.Cluster
 	endpoint  string
+	namespace string
 }
 
 func (h *KubernetesResources) Initialize(ctx context.Context, _ options.Options) error {
@@ -81,7 +87,7 @@ func (h *KubernetesResources) Initialize(ctx context.Context, _ options.Options)
 			return err
 		}
 
-		cmd := exec.Command("kubectl", "--kubeconfig", f.Name(), "apply", "-f", "-")
+		cmd := exec.Command("kubectl", "--kubeconfig", f.Name(), "-n", h.namespace, "apply", "-f", "-")
 		cmd.Stdin = bytes.NewReader(resourceBytes)
 
 		log.Infof("Creating Kubernetes resource %s", name)
