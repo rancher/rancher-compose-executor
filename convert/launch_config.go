@@ -42,7 +42,7 @@ func serviceConfigToLaunchConfig(serviceConfig config.ServiceConfig, p *project.
 	launchConfig.Dns = serviceConfig.DNS
 	launchConfig.DomainName = serviceConfig.DomainName
 	launchConfig.EntryPoint = strslice.StrSlice(utils.CopySlice(serviceConfig.Entrypoint))
-	launchConfig.Environment = mapToMap(serviceConfig.Environment.ToMap())
+	launchConfig.Environment = serviceConfig.Environment.ToMap()
 	launchConfig.ExtraHosts = serviceConfig.ExtraHosts
 	launchConfig.Expose = serviceConfig.Expose
 	launchConfig.GroupAdd = serviceConfig.GroupAdd
@@ -51,7 +51,7 @@ func serviceConfigToLaunchConfig(serviceConfig config.ServiceConfig, p *project.
 	launchConfig.Image = serviceConfig.Image
 	launchConfig.IpcMode = serviceConfig.Ipc
 	launchConfig.Isolation = serviceConfig.Isolation
-	launchConfig.Labels = labels(serviceConfig.Labels)
+	launchConfig.Labels = serviceConfig.Labels
 	launchConfig.LogConfig = toRancherLogOption(serviceConfig.Logging)
 	launchConfig.Memory = int64(serviceConfig.MemLimit)
 	launchConfig.MemoryMb = int64(serviceConfig.Memory)
@@ -69,7 +69,7 @@ func serviceConfigToLaunchConfig(serviceConfig config.ServiceConfig, p *project.
 	launchConfig.ShmSize = int64(serviceConfig.ShmSize)
 	launchConfig.StdinOpen = serviceConfig.StdinOpen
 	launchConfig.StopSignal = serviceConfig.StopSignal
-	launchConfig.Sysctls = mapToMap(serviceConfig.Sysctls)
+	launchConfig.Sysctls = serviceConfig.Sysctls
 	launchConfig.Tmpfs = tmpfsToMap(serviceConfig.Tmpfs)
 	launchConfig.Tty = serviceConfig.Tty
 	launchConfig.Ulimits = toRancherUlimit(serviceConfig.Ulimits)
@@ -237,8 +237,8 @@ func getThrottleDevice(throttleConfig yaml.MaporColonSlice) ([]*blkiodev.Throttl
 	return throttleDevice, nil
 }
 
-func tmpfsToMap(tmpfs []string) map[string]interface{} {
-	r := make(map[string]interface{})
+func tmpfsToMap(tmpfs []string) map[string]string {
+	r := make(map[string]string)
 	for _, v := range tmpfs {
 		parts := strings.SplitN(v, ":", 2)
 		if len(parts) == 1 {
@@ -261,7 +261,7 @@ func toRancherUlimit(ulimits yaml.Ulimits) []client.Ulimit {
 func toRancherLogOption(log config.Log) *client.LogConfig {
 	var r client.LogConfig
 	r.Driver = log.Driver
-	r.Config = mapToMap(log.Options)
+	r.Config = log.Options
 	return &r
 }
 

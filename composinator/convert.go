@@ -11,7 +11,6 @@ import (
 	"github.com/pkg/errors"
 	v3 "github.com/rancher/go-rancher/v3"
 	"github.com/rancher/rancher-compose-executor/config"
-	"github.com/rancher/rancher-compose-executor/utils"
 	"github.com/rancher/rancher-compose-executor/yaml"
 	yml "gopkg.in/yaml.v2"
 )
@@ -327,7 +326,7 @@ func mergeDockerCompose(serviceConfig *config.ServiceConfig, launchConfig v3.Lau
 	serviceConfig.MemReservation = yaml.MemStringorInt(launchConfig.MemoryReservation)
 	serviceConfig.Privileged = launchConfig.Privileged
 	serviceConfig.StdinOpen = launchConfig.StdinOpen
-	serviceConfig.Sysctls = utils.ToMapString(launchConfig.Sysctls)
+	serviceConfig.Sysctls = launchConfig.Sysctls
 	serviceConfig.Tty = launchConfig.Tty
 	serviceConfig.CPUShares = yaml.StringorInt(launchConfig.CpuShares)
 	serviceConfig.BlkioWeight = yaml.StringorInt(launchConfig.BlkioWeight)
@@ -352,7 +351,7 @@ func mergeDockerCompose(serviceConfig *config.ServiceConfig, launchConfig v3.Lau
 	serviceConfig.Expose = launchConfig.Expose
 	convertNetworkMode(serviceConfig, launchConfig)
 	serviceConfig.CPUSet = launchConfig.CpuSetCpu
-	serviceConfig.Labels = utils.ToMapString(launchConfig.Labels)
+	serviceConfig.Labels = launchConfig.Labels
 	delete(serviceConfig.Labels, hashLabel)
 	serviceConfig.Pid = launchConfig.PidMode
 	serviceConfig.Devices = launchConfig.Devices
@@ -384,7 +383,7 @@ func mergeDockerComposeStandalone(serviceConfig *config.ServiceConfig, container
 	serviceConfig.MemReservation = yaml.MemStringorInt(container.MemoryReservation)
 	serviceConfig.Privileged = container.Privileged
 	serviceConfig.StdinOpen = container.StdinOpen
-	serviceConfig.Sysctls = utils.ToMapString(container.Sysctls)
+	serviceConfig.Sysctls = container.Sysctls
 	serviceConfig.Tty = container.Tty
 	serviceConfig.CPUShares = yaml.StringorInt(container.CpuShares)
 	serviceConfig.BlkioWeight = yaml.StringorInt(container.BlkioWeight)
@@ -409,7 +408,7 @@ func mergeDockerComposeStandalone(serviceConfig *config.ServiceConfig, container
 	serviceConfig.Expose = container.Expose
 	convertNetworkModeStandalone(serviceConfig, container)
 	serviceConfig.CPUSet = container.CpuSetCpu
-	serviceConfig.Labels = utils.ToMapString(container.Labels)
+	serviceConfig.Labels = container.Labels
 	delete(serviceConfig.Labels, hashLabel)
 	serviceConfig.Pid = container.PidMode
 	serviceConfig.Devices = container.Devices
@@ -499,9 +498,9 @@ func convertNetworkModeStandalone(serviceConfig *config.ServiceConfig, container
 	}
 }
 
-func convertEnvironmentVariable(serviceConfig *config.ServiceConfig, envs map[string]interface{}) {
+func convertEnvironmentVariable(serviceConfig *config.ServiceConfig, envs map[string]string) {
 	r := []string{}
-	for k, v := range utils.ToMapString(envs) {
+	for k, v := range envs {
 		r = append(r, fmt.Sprintf("%s=%s", k, v))
 	}
 	serviceConfig.Environment = r
@@ -530,7 +529,7 @@ func convertVolume(serviceConfig *config.ServiceConfig, volumeConfig map[string]
 			if vt, ok := volumeTemplates[parts[0]]; ok {
 				volumeConfig[vt.Name] = &config.VolumeConfig{
 					Driver:       vt.Driver,
-					DriverOpts:   utils.ToMapString(vt.DriverOpts),
+					DriverOpts:   vt.DriverOpts,
 					PerContainer: vt.PerContainer,
 					External: yaml.External{
 						External: vt.External,
@@ -637,20 +636,20 @@ func convertSelectorLabel(serviceConfig *config.ServiceConfig, service v3.Servic
 func convertLogOptions(serviceConfig *config.ServiceConfig, launchConfig v3.LaunchConfig) {
 	if launchConfig.LogConfig != nil {
 		serviceConfig.Logging.Driver = launchConfig.LogConfig.Driver
-		serviceConfig.Logging.Options = utils.ToMapString(launchConfig.LogConfig.Config)
+		serviceConfig.Logging.Options = launchConfig.LogConfig.Config
 	}
 }
 
 func convertLogOptionsStandalone(serviceConfig *config.ServiceConfig, container v3.Container) {
 	if container.LogConfig != nil {
 		serviceConfig.Logging.Driver = container.LogConfig.Driver
-		serviceConfig.Logging.Options = utils.ToMapString(container.LogConfig.Config)
+		serviceConfig.Logging.Options = container.LogConfig.Config
 	}
 }
 
 func convertTmpfs(serviceConfig *config.ServiceConfig, launchConfig v3.LaunchConfig) {
 	serviceConfig.Tmpfs = []string{}
-	m := utils.ToMapString(launchConfig.Tmpfs)
+	m := launchConfig.Tmpfs
 	for k, v := range m {
 		if v != "" {
 			serviceConfig.Tmpfs = append(serviceConfig.Tmpfs, fmt.Sprintf("%s:%s", k, v))
@@ -662,7 +661,7 @@ func convertTmpfs(serviceConfig *config.ServiceConfig, launchConfig v3.LaunchCon
 
 func convertTmpfsStandalone(serviceConfig *config.ServiceConfig, container v3.Container) {
 	serviceConfig.Tmpfs = []string{}
-	m := utils.ToMapString(container.Tmpfs)
+	m := container.Tmpfs
 	for k, v := range m {
 		if v != "" {
 			serviceConfig.Tmpfs = append(serviceConfig.Tmpfs, fmt.Sprintf("%s:%s", k, v))

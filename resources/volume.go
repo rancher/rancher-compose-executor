@@ -106,7 +106,7 @@ func (v *Volume) EnsureItExists(ctx context.Context) error {
 }
 
 func (v *Volume) create(ctx context.Context) error {
-	driverOptions := map[string]interface{}{}
+	driverOptions := map[string]string{}
 	for k, v := range v.driverOptions {
 		driverOptions[k] = v
 	}

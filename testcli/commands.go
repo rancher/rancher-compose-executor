@@ -36,11 +36,11 @@ func up(c *cli.Context) error {
 }
 
 func getProject(c *cli.Context) (*project.Project, error) {
-	files := map[string]interface{}{}
+	files := map[string]string{}
 
 	composeBytes, err := ioutil.ReadFile(composeFilename)
 	if err == nil {
-		files[composeFilename] = composeBytes
+		files[composeFilename] = string(composeBytes)
 	}
 
 	filenames := c.GlobalStringSlice("file")
@@ -48,14 +48,14 @@ func getProject(c *cli.Context) (*project.Project, error) {
 	for _, f := range filenames {
 		dockerComposeBytes, err = ioutil.ReadFile(f)
 		if err == nil {
-			files[dockerComposeFilename] = dockerComposeBytes
+			files[dockerComposeFilename] = string(dockerComposeBytes)
 		}
 	}
 
 	if len(dockerComposeBytes) == 0 {
 		dockerComposeBytes, err = ioutil.ReadFile(dockerComposeFilename)
 		if err == nil {
-			files[dockerComposeFilename] = dockerComposeBytes
+			files[dockerComposeFilename] = string(dockerComposeBytes)
 		}
 	}
 
@@ -70,7 +70,7 @@ func getProject(c *cli.Context) (*project.Project, error) {
 	}
 	rancherComposeBytes, err := ioutil.ReadFile(path.Join(relPath, rancherFile))
 	if err == nil {
-		files[rancherComposeFilename] = rancherComposeBytes
+		files[rancherComposeFilename] = string(rancherComposeBytes)
 	}
 
 	envFile := c.String("env-file")
