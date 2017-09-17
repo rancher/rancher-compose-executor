@@ -43,7 +43,7 @@ func createLaunchConfigs(project *project.Project, name string) (client.LaunchCo
 			secondaryLaunchConfig.Name = secondaryName
 
 			if secondaryLaunchConfig.Labels == nil {
-				secondaryLaunchConfig.Labels = map[string]interface{}{}
+				secondaryLaunchConfig.Labels = map[string]string{}
 			}
 			secondaryLaunchConfigs = append(secondaryLaunchConfigs, secondaryLaunchConfig)
 		}

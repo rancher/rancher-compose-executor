@@ -5,13 +5,12 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/rancher/go-rancher/v3"
-	"github.com/rancher/rancher-compose-executor/utils"
 )
 
 func pullImage(c *client.RancherClient, image string, labels map[string]string, pullCached bool) error {
 	taskOpts := &client.PullTask{
 		Mode:   "all",
-		Labels: utils.ToMapInterface(labels),
+		Labels: labels,
 		Image:  image,
 	}
 

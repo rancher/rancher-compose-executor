@@ -30,7 +30,7 @@ func (p *Project) LoadFromTemplateVersion(templateVersion catalog.TemplateVersio
 	return p.Load(templateVersion.Files, defaultedAnswers)
 }
 
-func (p *Project) Load(templates map[string]interface{}, answers map[string]string) error {
+func (p *Project) Load(templates map[string]string, answers map[string]string) error {
 	var err error
 
 	p.Templates = utils.ToMapByte(templates)

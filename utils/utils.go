@@ -127,17 +127,11 @@ func ToMapString(data map[string]interface{}) map[string]string {
 	return ret
 }
 
-func ToMapByte(data map[string]interface{}) map[string][]byte {
+func ToMapByte(data map[string]string) map[string][]byte {
 	ret := map[string][]byte{}
 
 	for k, v := range data {
-		if str, ok := v.(string); ok {
-			ret[k] = []byte(str)
-		} else if b, ok := v.([]byte); ok {
-			ret[k] = b
-		} else {
-			ret[k] = []byte(fmt.Sprint(v))
-		}
+		ret[k] = []byte(v)
 	}
 
 	return ret

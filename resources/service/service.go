@@ -91,14 +91,9 @@ func (s *Service) Pull(ctx context.Context, options options.Pull) (err error) {
 	return pullImage(s.project.Client, image, utils.ToMapString(labels), options.Cached)
 }
 
-func printStatus(image string, printed map[string]string, current map[string]interface{}) bool {
+func printStatus(image string, printed map[string]string, current map[string]string) bool {
 	good := true
-	for host, objStatus := range current {
-		status, ok := objStatus.(string)
-		if !ok {
-			continue
-		}
-
+	for host, status := range current {
 		v := printed[host]
 		if status != "Done" {
 			good = false
