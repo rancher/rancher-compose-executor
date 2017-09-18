@@ -3,11 +3,13 @@ package service
 import (
 	"errors"
 
+	"context"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/rancher/go-rancher/v3"
 )
 
-func pullImage(c *client.RancherClient, image string, labels map[string]string, pullCached bool) error {
+func pullImage(ctx context.Context, c *client.RancherClient, image string, labels map[string]string, pullCached bool) error {
 	taskOpts := &client.PullTask{
 		Mode:   "all",
 		Labels: labels,
@@ -25,7 +27,7 @@ func pullImage(c *client.RancherClient, image string, labels map[string]string, 
 
 	printed := map[string]string{}
 	lastMessage := ""
-	WaitFor(c, &task.Resource, task, func() string {
+	WaitFor(ctx, c, &task.Resource, task, func() string {
 		if task.TransitioningMessage != "" && task.TransitioningMessage != "In Progress" && task.TransitioningMessage != lastMessage {
 			printStatus(task.Image, printed, task.Status)
 			lastMessage = task.TransitioningMessage

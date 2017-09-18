@@ -12,6 +12,7 @@ import (
 	rutils "github.com/rancher/rancher-compose-executor/utils"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
+	"time"
 )
 
 type Service interface {
@@ -109,10 +110,12 @@ func (s *Services) Initialize(ctx context.Context, options options.Options) erro
 }
 
 func (s *Services) Start(ctx context.Context, options options.Options) error {
-	g, ctx := errgroup.WithContext(ctx)
+	newctx, cancel := context.WithTimeout(ctx, time.Second*30)
+	defer cancel()
+	g, ctxTimeout := errgroup.WithContext(newctx)
 	for name, service := range s.Services {
 		if rutils.IsSelected(options.Services, name) {
-			g.Go(up(service, options, ctx))
+			g.Go(up(service, options, ctxTimeout))
 		}
 	}
 

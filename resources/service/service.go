@@ -88,7 +88,7 @@ func (s *Service) Pull(ctx context.Context, options options.Pull) (err error) {
 
 	labels := s.wrapper.Labels()
 
-	return pullImage(s.project.Client, image, utils.ToMapString(labels), options.Cached)
+	return pullImage(ctx, s.project.Client, image, utils.ToMapString(labels), options.Cached)
 }
 
 func printStatus(image string, printed map[string]string, current map[string]string) bool {

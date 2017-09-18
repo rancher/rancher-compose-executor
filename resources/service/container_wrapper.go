@@ -34,7 +34,7 @@ func (s *ContainerWrapper) Create(ctx context.Context, options options.Options) 
 	if err != nil {
 		return err
 	}
-	return waitContainer(s.project.Client, container)
+	return waitContainer(ctx, s.project.Client, container)
 }
 
 func (s *ContainerWrapper) Image() string {
@@ -45,7 +45,7 @@ func (s *ContainerWrapper) Labels() map[string]interface{} {
 	return utils.ToMapInterface(s.project.Config.Services[s.name].Labels)
 }
 
-func (s *ContainerWrapper) upgrade(container *client.Container, options options.Options) error {
+func (s *ContainerWrapper) upgrade(ctx context.Context, container *client.Container, options options.Options) error {
 	if options.NoRecreate {
 		return nil
 	}
@@ -63,7 +63,7 @@ func (s *ContainerWrapper) upgrade(container *client.Container, options options.
 	}
 
 	for i := 0; i < 3; i++ {
-		err := waitContainer(s.project.Client, container)
+		err := waitContainer(ctx, s.project.Client, container)
 		if err != nil {
 			return err
 		}
@@ -85,7 +85,7 @@ func (s *ContainerWrapper) upgrade(container *client.Container, options options.
 	}
 
 	if len(containers.Data) > 0 {
-		return waitContainer(s.project.Client, &containers.Data[0])
+		return waitContainer(ctx, s.project.Client, &containers.Data[0])
 	}
 
 	return nil
@@ -104,5 +104,5 @@ func (s *ContainerWrapper) Up(ctx context.Context, options options.Options) erro
 		return nil
 	}
 
-	return s.upgrade(container, options)
+	return s.upgrade(ctx, container, options)
 }

@@ -34,7 +34,7 @@ func (s *ServiceWrapper) Create(ctx context.Context, options options.Options) er
 	if err != nil {
 		return err
 	}
-	return wait(s.project.Client, service)
+	return wait(ctx, s.project.Client, service)
 }
 
 func (s *ServiceWrapper) Image() string {
@@ -45,7 +45,7 @@ func (s *ServiceWrapper) Labels() map[string]interface{} {
 	return utils.ToMapInterface(s.project.Config.Services[s.name].Labels)
 }
 
-func (s *ServiceWrapper) upgrade(service *client.Service, options options.Options) error {
+func (s *ServiceWrapper) upgrade(ctx context.Context, service *client.Service, options options.Options) error {
 	if options.NoRecreate {
 		return nil
 	}
@@ -71,16 +71,16 @@ func (s *ServiceWrapper) upgrade(service *client.Service, options options.Option
 		return err
 	}
 
-	return wait(s.project.Client, service)
+	return wait(ctx, s.project.Client, service)
 }
 
-func (s *ServiceWrapper) rollback(service *client.Service) error {
+func (s *ServiceWrapper) rollback(ctx context.Context, service *client.Service) error {
 	service, err := s.project.Client.Service.ActionRollback(service, nil)
 	if err != nil {
 		return err
 	}
 
-	return wait(s.project.Client, service)
+	return wait(ctx, s.project.Client, service)
 }
 
 func (s *ServiceWrapper) Up(ctx context.Context, options options.Options) error {
@@ -93,7 +93,7 @@ func (s *ServiceWrapper) Up(ctx context.Context, options options.Options) error 
 	}
 
 	if options.Rollback {
-		return s.rollback(service)
+		return s.rollback(ctx, service)
 	}
 
 	if service.State == "upgraded" {
@@ -101,7 +101,7 @@ func (s *ServiceWrapper) Up(ctx context.Context, options options.Options) error 
 		if err != nil {
 			return err
 		}
-		if err = wait(s.project.Client, service); err != nil {
+		if err = wait(ctx, s.project.Client, service); err != nil {
 			return err
 		}
 	}
@@ -111,10 +111,10 @@ func (s *ServiceWrapper) Up(ctx context.Context, options options.Options) error 
 		if err != nil {
 			return err
 		}
-		if err = wait(s.project.Client, service); err != nil {
+		if err = wait(ctx, s.project.Client, service); err != nil {
 			return err
 		}
 	}
 
-	return s.upgrade(service, options)
+	return s.upgrade(ctx, service, options)
 }
