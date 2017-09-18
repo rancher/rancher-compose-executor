@@ -9,6 +9,7 @@ import (
 	"github.com/rancher/event-subscriber/events"
 	"github.com/rancher/go-rancher/v3"
 	"github.com/rancher/rancher-compose-executor/project/options"
+	"github.com/rancher/rancher-compose-executor/resources/service"
 )
 
 func CreateStack(event *events.Event, apiClient *client.RancherClient) error {
@@ -29,7 +30,9 @@ func doUp(event *events.Event, apiClient *client.RancherClient, msg string, forc
 
 	if err := stackUp(event, apiClient, forceUp); err != nil {
 		logger.Errorf("%s Event Failed: %v", msg, err)
-		publishTransitioningReply(err.Error(), event, apiClient, true)
+		if err != service.ErrTimeout {
+			publishTransitioningReply(err.Error(), event, apiClient, true)
+		}
 		return err
 	}
 
