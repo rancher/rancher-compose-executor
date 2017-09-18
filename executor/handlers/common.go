@@ -2,17 +2,13 @@ package handlers
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/rancher/event-subscriber/events"
 	"github.com/rancher/go-rancher/v3"
-)
-
-var (
-	ErrTimeout = errors.New("Timeout waiting service")
+	"github.com/rancher/rancher-compose-executor/resources/service"
 )
 
 func keepalive(request *events.Event, apiClient *client.RancherClient) (stopFunc func()) {
@@ -68,10 +64,10 @@ func newReply(event *events.Event) *client.Publish {
 func WithTimeout(f func(event *events.Event, apiClient *client.RancherClient) error) func(event *events.Event, apiClient *client.RancherClient) error {
 	return func(event *events.Event, apiClient *client.RancherClient) error {
 		err := f(event, apiClient)
-		if err == ErrTimeout {
+		if err == service.ErrTimeout {
 			logrus.Infof("Timeout processing %s", fmt.Sprintf("%s:%s", event.ResourceType, event.ResourceID))
 			return nil
 		}
-		return nil
+		return err
 	}
 }

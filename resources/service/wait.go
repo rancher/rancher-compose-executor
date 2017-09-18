@@ -9,6 +9,10 @@ import (
 	"github.com/rancher/go-rancher/v3"
 )
 
+var (
+	ErrTimeout = errors.New("Timeout waiting service")
+)
+
 func wait(ctx context.Context, client *client.RancherClient, service *client.Service) error {
 	return WaitFor(ctx, client, &service.Resource, service, func() string {
 		return service.Transitioning
@@ -27,7 +31,7 @@ func WaitFor(ctx context.Context, client *client.RancherClient, resource *client
 	for {
 		select {
 		case <-ctx.Done():
-			return errors.Errorf("Timeout. Context canceled for resource %v", resource.Id)
+			return ErrTimeout
 		case <-ticker.C:
 			if transitioning() != "yes" {
 				return nil
