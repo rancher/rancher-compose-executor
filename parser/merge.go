@@ -158,14 +158,8 @@ func Merge(existingServices map[string]*config.ServiceConfig, vars map[string]st
 		rawConfig.Networks[k] = v
 	}
 
-	baseRawServices, err = preProcessServiceMap(baseRawServices)
-	if err != nil {
-		return nil, err
-	}
-	baseRawContainers, err = preProcessServiceMap(baseRawContainers)
-	if err != nil {
-		return nil, err
-	}
+	baseRawServices = preProcessServiceMap(baseRawServices)
+	baseRawContainers = preProcessServiceMap(baseRawContainers)
 
 	var serviceConfigs map[string]*config.ServiceConfig
 	if rawConfig.Version == "2" {
