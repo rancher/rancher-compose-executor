@@ -6,6 +6,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"gopkg.in/yaml.v2"
+	"time"
 )
 
 // ConvertByJSON converts a struct (src) to another one (target) using json marshalling/unmarshalling.
@@ -167,4 +168,15 @@ func MapUnionI(left, right map[string]interface{}) map[string]interface{} {
 
 func IsSelected(selected []string, name string) bool {
 	return len(selected) == 0 || Contains(selected, name)
+}
+
+func RetryOnError(count int, f func() error) error {
+	var err error
+	for i := 0; i < count; i++ {
+		if err = f(); err == nil {
+			return nil
+		}
+		time.Sleep(time.Second)
+	}
+	return err
 }
