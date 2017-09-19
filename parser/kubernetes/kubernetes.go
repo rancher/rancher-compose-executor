@@ -1,10 +1,12 @@
 package kubernetes
 
 import (
+	"fmt"
 	"gopkg.in/yaml.v2"
 )
 
 type kubernetesResource struct {
+	Kind             string             `yaml:"kind,omitempty"`
 	Metadata         kubernetesMetadata `yaml:"metadata,omitempty"`
 	ResourceContents map[string]interface{}
 }
@@ -18,11 +20,11 @@ func GetResource(contents []byte) (string, map[string]interface{}, error) {
 	if err := yaml.Unmarshal(contents, &resource); err != nil {
 		return "", nil, err
 	}
-	if resource.Metadata.Name == "" {
+	if resource.Kind == "" || resource.Metadata.Name == "" {
 		return "", nil, nil
 	}
 	if err := yaml.Unmarshal(contents, &resource.ResourceContents); err != nil {
 		return "", nil, err
 	}
-	return resource.Metadata.Name, resource.ResourceContents, nil
+	return fmt.Sprintf("%s/%s", resource.Kind, resource.Metadata.Name), resource.ResourceContents, nil
 }
