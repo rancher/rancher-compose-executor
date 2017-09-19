@@ -66,12 +66,22 @@ func (s *ServiceWrapper) upgrade(ctx context.Context, service *client.Service, o
 		}
 	}
 
-	service, err = s.project.Client.Service.Update(service, updates)
+	err = utils.RetryOnError(10, updateServiceWrapper(s.project.Client, service, updates))
 	if err != nil {
 		return err
 	}
 
 	return wait(ctx, s.project.Client, service)
+}
+
+func updateServiceWrapper(client *client.RancherClient, service *client.Service, updates *client.Service) func() error {
+	return func() error {
+		_, err := client.Service.Update(service, updates)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
 }
 
 func (s *ServiceWrapper) rollback(ctx context.Context, service *client.Service) error {

@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/rancher/rancher-compose-executor/config"
+	"github.com/rancher/rancher-compose-executor/convert"
 )
 
 func getServiceOrder(containers, services map[string]*config.ServiceConfig) ([]string, error) {
@@ -15,7 +16,7 @@ func getServiceOrder(containers, services map[string]*config.ServiceConfig) ([]s
 	}
 
 	for name, config := range services {
-		if (config.LbConfig == nil || len(config.LbConfig.PortRules) == 0) && config.Links == nil {
+		if config.LbConfig == nil || len(config.LbConfig.PortRules) == 0 || config.Image != convert.LegacyLBImage {
 			add(name, &order, added)
 		}
 	}
@@ -39,10 +40,9 @@ func getServiceOrder(containers, services map[string]*config.ServiceConfig) ([]s
 		}
 	}
 
-	for name, config := range services {
-		if config.Links != nil {
-			add(name, &order, added)
-		}
+	// make sure legacy lb image is added
+	for name := range services {
+		add(name, &order, added)
 	}
 
 	if len(order) != len(containers)+len(services) {
