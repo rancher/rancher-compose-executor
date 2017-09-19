@@ -74,7 +74,7 @@ func Apply(kubeconfigLocation, name, namespace string, resource interface{}) err
 	cmd := exec.Command("kubectl", "--kubeconfig", kubeconfigLocation, "-n", namespace, "apply", "-f", "-")
 	cmd.Stdin = bytes.NewReader(resourceBytes)
 
-	log.Infof("Creating Kubernetes resource %s", name)
+	log.Infof("Applying Kubernetes resource %s", name)
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("Failed to apply Kubernetes resource %s: %v (%s)", name, err, output)
 	}
