@@ -87,7 +87,10 @@ func parseV2(resourceLookup lookup.ResourceLookup, vars map[string]string, inFil
 			return nil, err
 		}
 
-		baseRawServices = preProcessServiceMap(baseRawServices)
+		baseRawServices, err = preProcessServiceMap(baseRawServices)
+		if err != nil {
+			return nil, err
+		}
 
 		if err := validateV2(baseRawServices); err != nil {
 			return nil, err

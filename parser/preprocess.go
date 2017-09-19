@@ -9,25 +9,21 @@ import (
 	"github.com/rancher/rancher-compose-executor/config"
 )
 
-func preProcessServiceMap(serviceMap config.RawServiceMap) config.RawServiceMap {
+func preProcessServiceMap(serviceMap config.RawServiceMap) (config.RawServiceMap, error) {
 	newServiceMap := make(config.RawServiceMap)
-	rancherFields := getRancherConfigObjects()
+
 	for k, v := range serviceMap {
 		newServiceMap[k] = make(config.RawService)
 		for k2, v2 := range v {
 			if k2 == "environment" || k2 == "labels" {
-				v2 = preProcess(v2, true)
+				newServiceMap[k][k2] = preProcess(v2, true)
 			} else {
-				v2 = preProcess(v2, false)
-			}
-			if _, ok := rancherFields[k2]; ok {
-				newServiceMap[k][k2] = tryConvertStringsToInts(v2, true)
-			} else {
-				newServiceMap[k][k2] = tryConvertStringsToInts(v2, false)
+				newServiceMap[k][k2] = preProcess(v2, false)
 			}
 		}
 	}
-	return newServiceMap
+
+	return newServiceMap, nil
 }
 
 func preProcess(item interface{}, replaceTypes bool) interface{} {
@@ -57,6 +53,25 @@ func preProcess(item interface{}, replaceTypes bool) interface{} {
 		}
 		return item
 	}
+}
+
+func TryConvertStringsToInts(serviceMap config.RawServiceMap, fields map[string]bool) (config.RawServiceMap, error) {
+	newServiceMap := make(config.RawServiceMap)
+
+	for k, v := range serviceMap {
+		newServiceMap[k] = make(config.RawService)
+
+		for k2, v2 := range v {
+			if _, ok := fields[k2]; ok {
+				newServiceMap[k][k2] = tryConvertStringsToInts(v2, true)
+			} else {
+				newServiceMap[k][k2] = tryConvertStringsToInts(v2, false)
+			}
+
+		}
+	}
+
+	return newServiceMap, nil
 }
 
 func tryConvertStringsToInts(item interface{}, replaceTypes bool) interface{} {
