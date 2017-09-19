@@ -15,7 +15,7 @@ func getServiceOrder(containers, services map[string]*config.ServiceConfig) ([]s
 	}
 
 	for name, config := range services {
-		if config.LbConfig == nil || len(config.LbConfig.PortRules) == 0 {
+		if (config.LbConfig == nil || len(config.LbConfig.PortRules) == 0) && config.Links == nil {
 			add(name, &order, added)
 		}
 	}
@@ -35,6 +35,12 @@ func getServiceOrder(containers, services map[string]*config.ServiceConfig) ([]s
 			if !targetsAdded {
 				continue
 			}
+			add(name, &order, added)
+		}
+	}
+
+	for name, config := range services {
+		if config.Links != nil {
 			add(name, &order, added)
 		}
 	}
