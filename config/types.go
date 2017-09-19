@@ -182,7 +182,7 @@ type ServiceConfig struct {
 type RancherConfig struct {
 	Certs                    []string                         `yaml:"certs,omitempty"`
 	DefaultCert              string                           `yaml:"default_cert,omitempty"`
-	LbConfig                 *LBConfig                        `yaml:"lb_config"`
+	LbConfig                 *LBConfig                        `yaml:"lb_config,omitempty"`
 	LegacyLoadBalancerConfig *legacyClient.LoadBalancerConfig `yaml:"load_balancer_config,omitempty"`
 
 	CreateOnly  bool                        `yaml:"create_only,omitempty"`
