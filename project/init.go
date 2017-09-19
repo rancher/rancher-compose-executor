@@ -67,30 +67,8 @@ func (p *Project) Load(templates map[string]string, answers map[string]string) e
 
 	defer p.Config.Complete()
 
-	composeBytes, file, err := p.ResourceLookup.Lookup("compose.yml", ".")
-	if err == nil {
-		return p.load(file, composeBytes)
-	}
-
-	composeBytes, file, err = p.ResourceLookup.Lookup("docker-compose.yml", ".")
-	if err == nil {
-		if err := p.load(file, composeBytes); err != nil {
-			return err
-		}
-	} else {
-		composeBytes, file, err = p.ResourceLookup.Lookup("docker-compose.yml.tpl", ".")
-		if err != nil {
-			return err
-		}
-		if err := p.load(file, composeBytes); err != nil {
-			return err
-		}
-	}
-
-	composeBytes, file, err = p.ResourceLookup.Lookup("rancher-compose.yml", ".")
-	if err == nil {
-		err = p.load(file, composeBytes)
-		if err != nil {
+	for file, contents := range p.Templates {
+		if err = p.load(file, contents); err != nil {
 			return err
 		}
 	}
