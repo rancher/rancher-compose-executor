@@ -40,13 +40,12 @@ func (s *ConvertTestSuite) TestExportConfig(c *check.C) {
 	}
 	service.LaunchConfig = &v3.LaunchConfig{
 		Image: "strongmonkey/test",
-		Labels: map[string]interface{}{
+		Labels: map[string]string{
 			"io.rancher.scheduler.global": "true",
 			"io.rancher.service.hash":     "088b54be-2b79-99e30b3a1a24",
 		},
-		CpuSet:              "0,1",
+		CpuSetCpu:           "0,1",
 		RestartPolicy:       &restartPolicy,
-		StartOnCreate:       true,
 		PidMode:             "host",
 		Memory:              1048576,
 		MemorySwap:          2097152,
@@ -55,7 +54,7 @@ func (s *ConvertTestSuite) TestExportConfig(c *check.C) {
 		Devices:             []string{"/dev/sdc:/dev/xsdc:rwm"},
 		LogConfig: &v3.LogConfig{
 			Driver: "json-file",
-			Config: map[string]interface{}{
+			Config: map[string]string{
 				"labels": "foo",
 			},
 		},
@@ -90,10 +89,10 @@ func (s *ConvertTestSuite) TestExportConfig(c *check.C) {
 				"weight":   3000,
 			},
 		},
-		Tmpfs: map[string]interface{}{
+		Tmpfs: map[string]string{
 			"/run": "rw",
 		},
-		Sysctls: map[string]interface{}{
+		Sysctls: map[string]string{
 			"net.ipv4.ip_forward": "1",
 		},
 		Ulimits: []v3.Ulimit{
@@ -111,7 +110,6 @@ func (s *ConvertTestSuite) TestExportConfig(c *check.C) {
 	service.Metadata = metadata
 	service.LaunchConfig.RetainIp = true
 	service.Name = "strongmonkey"
-	service.StartOnCreate = true
 	service.Id = "test"
 	stackData := StackData{
 		Services:             map[string]v3.Service{},
@@ -189,7 +187,6 @@ func (s *ConvertTestSuite) TestExportConfig(c *check.C) {
 	rancherServiceConfig := rancherConfig.Services[service.Name]
 	c.Assert(rancherServiceConfig.Scale, check.Equals, cyaml.StringorInt(0))
 	c.Assert(rancherServiceConfig.Metadata, check.HasLen, 1)
-	c.Assert(rancherServiceConfig.StartOnCreate, check.Equals, true)
 	c.Assert(rancherServiceConfig.RetainIp, check.Equals, true)
 	c.Assert(rancherServiceConfig.MilliCpuReservation, check.Equals, cyaml.StringorInt(1000))
 }
@@ -359,7 +356,7 @@ func (s *ConvertTestSuite) TestConvertVolume(c *check.C) {
 		"foo": {
 			Name:   "foo",
 			Driver: "nfs",
-			DriverOpts: map[string]interface{}{
+			DriverOpts: map[string]string{
 				"size": "1",
 			},
 			PerContainer: true,
@@ -400,7 +397,6 @@ func (s *ConvertTestSuite) TestConvertCombined(c *check.C) {
 	}
 	service.LaunchConfig.RetainIp = true
 	service.Name = "strongmonkey"
-	service.StartOnCreate = true
 	service.Id = "test"
 	stackData := StackData{
 		Services:             map[string]v3.Service{},
@@ -422,7 +418,6 @@ func (s *ConvertTestSuite) TestConvertCombined(c *check.C) {
 	}
 	sconfig := config.Services[service.Name]
 	c.Assert(sconfig.Image, check.Equals, "strongmonkey/test")
-	c.Assert(sconfig.StartOnCreate, check.Equals, true)
 	c.Assert(sconfig.RetainIp, check.Equals, true)
 }
 
@@ -431,7 +426,6 @@ func (s *ConvertTestSuite) TestConvertStandaloneContainer(c *check.C) {
 	container.Image = "strongmonkey/test"
 	container.RetainIp = true
 	container.Name = "strongmonkey"
-	container.StartOnCreate = true
 	container.Id = "test"
 	stackData := StackData{
 		Services:             map[string]v3.Service{},
@@ -453,6 +447,5 @@ func (s *ConvertTestSuite) TestConvertStandaloneContainer(c *check.C) {
 	}
 	sconfig := config.Containers[container.Name]
 	c.Assert(sconfig.Image, check.Equals, "strongmonkey/test")
-	c.Assert(sconfig.StartOnCreate, check.Equals, true)
 	c.Assert(sconfig.RetainIp, check.Equals, true)
 }
