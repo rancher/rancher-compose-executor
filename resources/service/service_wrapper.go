@@ -36,6 +36,13 @@ func (s *ServiceWrapper) Create(ctx context.Context, options options.Options) er
 
 	logrus.Debugf("Creating service %s", s.name)
 	service.CreateOnly = true
+	service.CompleteUpdate = true
+	if service.LaunchConfig != nil {
+		service.LaunchConfig.CompleteUpdate = true
+	}
+	for i := range service.SecondaryLaunchConfigs {
+		service.SecondaryLaunchConfigs[i].CompleteUpdate = true
+	}
 	service, err = s.project.Client.Service.Create(service)
 	if err != nil {
 		return err
