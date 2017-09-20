@@ -33,6 +33,10 @@ func (p *Project) LoadFromTemplateVersion(templateVersion catalog.TemplateVersio
 func (p *Project) Load(templates map[string]string, answers map[string]string) error {
 	var err error
 
+	// Filter and remove invalid templates
+	// Catalog service will treat files such as README.md and template-version.yml as templates
+	templates = filterTemplates(templates)
+
 	p.Templates = utils.ToMapByte(templates)
 	p.Answers = answers
 
@@ -74,6 +78,27 @@ func (p *Project) Load(templates map[string]string, answers map[string]string) e
 	}
 
 	return nil
+}
+
+func filterTemplates(templates map[string]string) map[string]string {
+	filtereredTemplates := map[string]string{}
+	for filename, contents := range templates {
+		if filename == "template-version.yml" {
+			continue
+		}
+		for _, validSuffix := range []string{
+			".yml",
+			".yaml",
+			".yml.tpl",
+			".yaml.tpl",
+		} {
+			if strings.HasSuffix(filename, validSuffix) {
+				filtereredTemplates[filename] = contents
+				break
+			}
+		}
+	}
+	return filtereredTemplates
 }
 
 func loadStack(projectName string, c *client.RancherClient) (*client.Stack, error) {
