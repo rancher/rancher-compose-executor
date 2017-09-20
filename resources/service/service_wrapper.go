@@ -12,6 +12,12 @@ import (
 	"golang.org/x/net/context"
 )
 
+const (
+	rollback      = "rollback"
+	finishupgrade = "finishupgrade"
+	activate      = "activate"
+)
+
 type ServiceWrapper struct {
 	name    string
 	project *project.Project
@@ -66,8 +72,7 @@ func (s *ServiceWrapper) upgrade(ctx context.Context, service *client.Service, o
 		}
 	}
 
-	err = utils.RetryOnError(10, updateServiceWrapper(s.project.Client, service, updates))
-	if err != nil {
+	if err = utils.RetryOnError(10, updateServiceWrapper(s.project.Client, service, updates)); err != nil {
 		return err
 	}
 
@@ -85,8 +90,7 @@ func updateServiceWrapper(client *client.RancherClient, service *client.Service,
 }
 
 func (s *ServiceWrapper) rollback(ctx context.Context, service *client.Service) error {
-	service, err := s.project.Client.Service.ActionRollback(service, nil)
-	if err != nil {
+	if err := utils.RetryOnError(10, ActionWrapper(s.project.Client, service, rollback)); err != nil {
 		return err
 	}
 
@@ -107,8 +111,7 @@ func (s *ServiceWrapper) Up(ctx context.Context, options options.Options) error 
 	}
 
 	if service.State == "upgraded" {
-		service, err = s.project.Client.Service.ActionFinishupgrade(service)
-		if err != nil {
+		if err := utils.RetryOnError(10, ActionWrapper(s.project.Client, service, finishupgrade)); err != nil {
 			return err
 		}
 		if err = wait(ctx, s.project.Client, service); err != nil {
@@ -117,8 +120,7 @@ func (s *ServiceWrapper) Up(ctx context.Context, options options.Options) error 
 	}
 
 	if service.State == "inactive" {
-		service, err = s.project.Client.Service.ActionActivate(service)
-		if err != nil {
+		if err := utils.RetryOnError(10, ActionWrapper(s.project.Client, service, activate)); err != nil {
 			return err
 		}
 		if err = wait(ctx, s.project.Client, service); err != nil {
@@ -127,4 +129,21 @@ func (s *ServiceWrapper) Up(ctx context.Context, options options.Options) error 
 	}
 
 	return s.upgrade(ctx, service, options)
+}
+
+func ActionWrapper(c *client.RancherClient, service *client.Service, action string) func() error {
+	return func() error {
+		switch action {
+		case rollback:
+			_, err := c.Service.ActionRollback(service, nil)
+			return err
+		case finishupgrade:
+			_, err := c.Service.ActionFinishupgrade(service)
+			return err
+		case activate:
+			_, err := c.Service.ActionActivate(service)
+			return err
+		}
+		return nil
+	}
 }
