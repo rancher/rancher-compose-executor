@@ -16,33 +16,41 @@ func getServiceOrder(containers, services map[string]*config.ServiceConfig) ([]s
 	}
 
 	for name, config := range services {
-		if config.LbConfig == nil || len(config.LbConfig.PortRules) == 0 || config.Image != convert.LegacyLBImage {
-			add(name, &order, added)
+		if config.Image == convert.LegacyLBImage {
+			continue
 		}
+		if config.LbConfig != nil && containsServicePortRules(config.LbConfig) {
+			continue
+		}
+		add(name, &order, added)
 	}
 
 	for i := 0; i < 100; i++ {
 		for name, config := range services {
-			if config.LbConfig == nil {
-				continue
-			}
-			targetsAdded := true
-			for _, portRule := range config.LbConfig.PortRules {
-				if _, ok := added[portRule.Service]; !ok {
-					targetsAdded = false
-					break
+			if config.LbConfig != nil {
+				targetsAdded := true
+				for _, portRule := range config.LbConfig.PortRules {
+					if _, ok := added[portRule.Service]; !ok {
+						targetsAdded = false
+						break
+					}
+				}
+				if targetsAdded {
+					add(name, &order, added)
+				}
+			} else if config.Image == convert.LegacyLBImage {
+				targetsAdded := true
+				for _, link := range config.Links {
+					if _, ok := added[link]; !ok {
+						targetsAdded = false
+						break
+					}
+				}
+				if targetsAdded {
+					add(name, &order, added)
 				}
 			}
-			if !targetsAdded {
-				continue
-			}
-			add(name, &order, added)
 		}
-	}
-
-	// make sure legacy lb image is added
-	for name := range services {
-		add(name, &order, added)
 	}
 
 	if len(order) != len(containers)+len(services) {
@@ -50,6 +58,15 @@ func getServiceOrder(containers, services map[string]*config.ServiceConfig) ([]s
 	}
 
 	return order, nil
+}
+
+func containsServicePortRules(lbConfig *config.LBConfig) bool {
+	for _, portRule := range lbConfig.PortRules {
+		if portRule.Service != "" {
+			return true
+		}
+	}
+	return false
 }
 
 func add(name string, order *[]string, added map[string]bool) {
