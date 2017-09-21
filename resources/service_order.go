@@ -2,6 +2,7 @@ package resources
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/rancher/rancher-compose-executor/config"
 	"github.com/rancher/rancher-compose-executor/convert"
@@ -41,6 +42,10 @@ func getServiceOrder(containers, services map[string]*config.ServiceConfig) ([]s
 			} else if config.Image == convert.LegacyLBImage {
 				targetsAdded := true
 				for _, link := range config.Links {
+					parts := strings.SplitN(link, ":", 2)
+					if len(parts) > 1 {
+						link = parts[1]
+					}
 					if _, ok := added[link]; !ok {
 						targetsAdded = false
 						break

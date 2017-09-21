@@ -46,6 +46,13 @@ func TestGetServiceOrder(t *testing.T) {
 			"lb4": factory("lb2", "lb3"),
 		}, []string{"s1", "s2"}, []string{"lb"}, []string{"lb2", "lb3"}, []string{"lb4"})
 	}
+
+	// test legacy lb specifically
+	testGetServiceOrder(t, map[string]*config.ServiceConfig{
+		"s1": {},
+		"s2": {},
+		"lb": legacyLbConfigFactory("s1:s1", "s2:s2"),
+	}, []string{"s1", "s2"}, []string{"lb"})
 }
 
 func TestGetServiceOrderWithSelector(t *testing.T) {
