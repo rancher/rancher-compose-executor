@@ -6,10 +6,20 @@ import (
 	"testing"
 
 	"github.com/rancher/rancher-compose-executor/config"
+	legacyClient "github.com/rancher/go-rancher/client"
 )
 
 func TestGenerateHAProxyConf(t *testing.T) {
-	conf := generateHAProxyConf("daemon\nmaxconn 256", "mode http")
+	conf := generateHAProxyConf(config.ServiceConfig{
+		RancherConfig: config.RancherConfig{
+			LegacyLoadBalancerConfig: &legacyClient.LoadBalancerConfig{
+				HaproxyConfig: &legacyClient.HaproxyConfig{
+					Global: "daemon\nmaxconn 256",
+					Defaults: "mode http",
+				},
+			},
+		},
+	})
 	expectedConf := `global
     daemon
     maxconn 256
@@ -19,13 +29,31 @@ defaults
 		t.Fail()
 	}
 
-	conf = generateHAProxyConf("daemon\n", "")
+	conf = generateHAProxyConf(config.ServiceConfig{
+		RancherConfig: config.RancherConfig{
+			LegacyLoadBalancerConfig: &legacyClient.LoadBalancerConfig{
+				HaproxyConfig: &legacyClient.HaproxyConfig{
+					Global: "daemon\n",
+					Defaults: "",
+				},
+			},
+		},
+	})
 	expectedConf = "global\n    daemon\n    \n"
 	if conf != expectedConf {
 		t.Fail()
 	}
 
-	conf = generateHAProxyConf("", "mode http")
+	conf = generateHAProxyConf(config.ServiceConfig{
+		RancherConfig: config.RancherConfig{
+			LegacyLoadBalancerConfig: &legacyClient.LoadBalancerConfig{
+				HaproxyConfig: &legacyClient.HaproxyConfig{
+					Global: "",
+					Defaults: "mode http",
+				},
+			},
+		},
+	})
 	expectedConf = "defaults\n    mode http"
 	if conf != expectedConf {
 		t.Fail()

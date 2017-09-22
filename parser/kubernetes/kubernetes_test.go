@@ -14,7 +14,7 @@ metadata:
   name: test
 `))
 	assert.NoError(t, err)
-	assert.Equal(t, "test", resourceName)
+	assert.Equal(t, "Pod/test", resourceName)
 	assert.Equal(t, map[string]interface{}{
 		"apiVersion": "v1",
 		"kind":       "Pod",

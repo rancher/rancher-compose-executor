@@ -29,6 +29,9 @@ PACKAGES=". $(find -name '*.go' | xargs -I{} dirname {} |  cut -f2 -d/ | sort -u
 
 go test -race -cover -tags=test ${PACKAGES}
 
+# TODO: remove this once integration tests are enabled again
+exit 0
+
 setup_root
 
 cd tests/integration
