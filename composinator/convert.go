@@ -164,13 +164,15 @@ func GetStackData(client *v3.RancherClient, stackID string) (StackData, error) {
 			}
 		}
 		// prepare secrets
-		for _, launchConfig := range append([]v3.LaunchConfig{*service.LaunchConfig}, service.SecondaryLaunchConfigs...) {
-			for _, sr := range launchConfig.Secrets {
-				secret, err := client.Secret.ById(sr.SecretId)
-				if err != nil {
-					return StackData{}, errors.Wrap(err, "can't get secret")
+		if service.LaunchConfig != nil {
+			for _, launchConfig := range append([]v3.LaunchConfig{*service.LaunchConfig}, service.SecondaryLaunchConfigs...) {
+				for _, sr := range launchConfig.Secrets {
+					secret, err := client.Secret.ById(sr.SecretId)
+					if err != nil {
+						return StackData{}, errors.Wrap(err, "can't get secret")
+					}
+					stackData.Secrets[secret.Id] = *secret
 				}
-				stackData.Secrets[secret.Id] = *secret
 			}
 		}
 	}
@@ -195,25 +197,27 @@ func createCombinedComposeData(stackData StackData) (string, error) {
 	secretConfig := map[string]*config.SecretConfig{}
 	// for service export
 	for _, service := range stackData.Services {
-		launchConfigs := append([]v3.LaunchConfig{*service.LaunchConfig}, service.SecondaryLaunchConfigs...)
-		for _, launchConfig := range launchConfigs {
-			serviceConfig := &config.ServiceConfig{}
-			// volume convert
-			convertVolume(serviceConfig, volumeConfig, launchConfig.DataVolumes, launchConfig.VolumeDriver, stackData.VolumeTemplates)
+		if service.LaunchConfig != nil {
+			launchConfigs := append([]v3.LaunchConfig{*service.LaunchConfig}, service.SecondaryLaunchConfigs...)
+			for _, launchConfig := range launchConfigs {
+				serviceConfig := &config.ServiceConfig{}
+				// volume convert
+				convertVolume(serviceConfig, volumeConfig, launchConfig.DataVolumes, launchConfig.VolumeDriver, stackData.VolumeTemplates)
 
-			//secret convert
-			convertSecret(serviceConfig, secretConfig, launchConfig.Secrets, stackData.Secrets)
+				//secret convert
+				convertSecret(serviceConfig, secretConfig, launchConfig.Secrets, stackData.Secrets)
 
-			// docker-compose
-			mergeDockerCompose(serviceConfig, launchConfig, service)
+				// docker-compose
+				mergeDockerCompose(serviceConfig, launchConfig, service)
 
-			//rancher-compose
-			mergeRancherCompose(serviceConfig, service, launchConfig, stackData.Certificates, stackData.PortRuleServices, stackData.PortRuleContainers)
+				//rancher-compose
+				mergeRancherCompose(serviceConfig, service, launchConfig, stackData.Certificates, stackData.PortRuleServices, stackData.PortRuleContainers)
 
-			if launchConfig.Name == "" {
-				compose.Services[service.Name] = serviceConfig
-			} else {
-				compose.Services[launchConfig.Name] = serviceConfig
+				if launchConfig.Name == "" {
+					compose.Services[service.Name] = serviceConfig
+				} else {
+					compose.Services[launchConfig.Name] = serviceConfig
+				}
 			}
 		}
 	}
@@ -249,30 +253,32 @@ func createSplitComposeData(stackData StackData) (string, string, error) {
 	volumeConfig := map[string]*config.VolumeConfig{}
 	secretConfig := map[string]*config.SecretConfig{}
 	for _, service := range stackData.Services {
-		launchConfigs := append([]v3.LaunchConfig{*service.LaunchConfig}, service.SecondaryLaunchConfigs...)
-		for _, launchConfig := range launchConfigs {
-			serviceDockerConfig := &config.ServiceConfig{}
-			serviceRancherConfig := &config.ServiceConfig{}
-			// volume convert
-			convertVolume(serviceDockerConfig, volumeConfig, launchConfig.DataVolumes, launchConfig.VolumeDriver, stackData.VolumeTemplates)
+		if service.LaunchConfig != nil {
+			launchConfigs := append([]v3.LaunchConfig{*service.LaunchConfig}, service.SecondaryLaunchConfigs...)
+			for _, launchConfig := range launchConfigs {
+				serviceDockerConfig := &config.ServiceConfig{}
+				serviceRancherConfig := &config.ServiceConfig{}
+				// volume convert
+				convertVolume(serviceDockerConfig, volumeConfig, launchConfig.DataVolumes, launchConfig.VolumeDriver, stackData.VolumeTemplates)
 
-			//secret convert
-			convertSecret(serviceDockerConfig, secretConfig, launchConfig.Secrets, stackData.Secrets)
+				//secret convert
+				convertSecret(serviceDockerConfig, secretConfig, launchConfig.Secrets, stackData.Secrets)
 
-			// docker-compose
-			mergeDockerCompose(serviceDockerConfig, launchConfig, service)
+				// docker-compose
+				mergeDockerCompose(serviceDockerConfig, launchConfig, service)
 
-			//rancher-compose
-			mergeRancherCompose(serviceRancherConfig, service, launchConfig, stackData.Certificates, stackData.PortRuleServices, stackData.PortRuleContainers)
+				//rancher-compose
+				mergeRancherCompose(serviceRancherConfig, service, launchConfig, stackData.Certificates, stackData.PortRuleServices, stackData.PortRuleContainers)
 
-			serviceName := ""
-			if launchConfig.Name == "" {
-				serviceName = service.Name
-			} else {
-				serviceName = launchConfig.Name
+				serviceName := ""
+				if launchConfig.Name == "" {
+					serviceName = service.Name
+				} else {
+					serviceName = launchConfig.Name
+				}
+				dockerCompose.Services[serviceName] = serviceDockerConfig
+				rancherCompose.Services[serviceName] = serviceRancherConfig
 			}
-			dockerCompose.Services[serviceName] = serviceDockerConfig
-			rancherCompose.Services[serviceName] = serviceRancherConfig
 		}
 	}
 
@@ -421,7 +427,7 @@ func mergeDockerComposeStandalone(serviceConfig *config.ServiceConfig, container
 }
 
 func mergeRancherCompose(serviceConfig *config.ServiceConfig, service v3.Service, launchConfig v3.LaunchConfig, certMap map[string]v3.Certificate, serviceMap map[string]v3.Service, containerMap map[string]v3.Container) {
-	serviceConfig.HealthCheck = service.HealthCheck
+	serviceConfig.HealthCheck = launchConfig.HealthCheck
 	serviceConfig.ExternalIps = service.ExternalIpAddresses
 	if service.Kind == virtualMachine {
 		serviceConfig.Type = service.Kind
@@ -591,7 +597,7 @@ func convertLBConfig(serviceConfig *config.ServiceConfig, service v3.Service, se
 			DefaultCert:      serviceConfig.DefaultCert,
 			PortRules:        convertPortRules(service.LbConfig.PortRules, serviceMap, containerMap),
 			Config:           service.LbConfig.Config,
-			StickinessPolicy: convertStickinessPolicy(*service.LbConfig.StickinessPolicy),
+			StickinessPolicy: convertStickinessPolicy(service.LbConfig.StickinessPolicy),
 		}
 	}
 }
@@ -615,7 +621,10 @@ func convertPortRules(portRules []v3.PortRule, serviceMap map[string]v3.Service,
 	return r
 }
 
-func convertStickinessPolicy(policy v3.LoadBalancerCookieStickinessPolicy) *config.LBStickinessPolicy {
+func convertStickinessPolicy(policy *v3.LoadBalancerCookieStickinessPolicy) *config.LBStickinessPolicy {
+	if policy == nil {
+		return nil
+	}
 	r := config.LBStickinessPolicy{}
 	r.Name = policy.Name
 	r.Domain = policy.Domain
