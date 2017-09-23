@@ -1,4 +1,4 @@
-package handlers
+package project
 
 import (
 	"github.com/rancher/go-rancher/v3"
@@ -8,34 +8,34 @@ import (
 	"strings"
 )
 
-type errClusterNotReady struct {
+type ErrClusterNotReady struct {
 	err error
 }
 
-func (e errClusterNotReady) Error() string {
+func (e ErrClusterNotReady) Error() string {
 	return e.err.Error()
 }
 
 func NewErrClusterNotReady(err error) error {
-	return errClusterNotReady{err}
+	return ErrClusterNotReady{err}
 }
 
 func IsErrClusterNotReady(err error) bool {
-	_, ok := err.(errClusterNotReady)
+	_, ok := err.(ErrClusterNotReady)
 	return ok
 }
 
-func checkClusterReady(rancherClient *client.RancherClient, cluster *client.Cluster) error {
-	if cluster.K8sClientConfig == nil {
+func (p *Project) checkClusterReady() error {
+	if p.Cluster.K8sClientConfig == nil || len(p.Config.KubernetesResources) == 0 {
 		return nil
 	}
 
 	config := &rest.Config{
-		Host:        getHost(rancherClient, cluster),
-		BearerToken: cluster.K8sClientConfig.BearerToken,
+		Host:        getHost(p.Client, p.Cluster),
+		BearerToken: p.Cluster.K8sClientConfig.BearerToken,
 	}
 
-	if !strings.HasPrefix(cluster.K8sClientConfig.Address, "http://") {
+	if !strings.HasPrefix(p.Cluster.K8sClientConfig.Address, "http://") {
 		config.TLSClientConfig = rest.TLSClientConfig{
 			// TODO
 			Insecure: true,
@@ -47,8 +47,7 @@ func checkClusterReady(rancherClient *client.RancherClient, cluster *client.Clus
 		return NewErrClusterNotReady(err)
 	}
 
-	_, err = clientset.Discovery().ServerVersion()
-	if err != nil {
+	if _, err = clientset.Discovery().ServerVersion(); err != nil {
 		return NewErrClusterNotReady(err)
 	}
 

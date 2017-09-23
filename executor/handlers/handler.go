@@ -8,6 +8,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/rancher/event-subscriber/events"
 	"github.com/rancher/go-rancher/v3"
+	"github.com/rancher/rancher-compose-executor/project"
 	"github.com/rancher/rancher-compose-executor/project/options"
 	"github.com/rancher/rancher-compose-executor/resources/service"
 )
@@ -29,7 +30,7 @@ func doUp(event *events.Event, apiClient *client.RancherClient, msg string, forc
 	logger.Infof("%s Event Received", msg)
 
 	if err := stackUp(event, apiClient, forceUp); err != nil {
-		if IsErrClusterNotReady(err) {
+		if project.IsErrClusterNotReady(err) {
 			publishTransitioningReply("Waiting for cluster to be ready", event, apiClient, false)
 			return nil
 		}
@@ -59,10 +60,6 @@ func stackUp(event *events.Event, apiClient *client.RancherClient, forceUp bool)
 	}
 	if cluster == nil {
 		return errors.New("Failed to find cluster")
-	}
-
-	if err := checkClusterReady(apiClient, cluster); err != nil {
-		return err
 	}
 
 	project, err := constructProject(stack, cluster, *apiClient.GetOpts())
