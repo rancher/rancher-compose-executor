@@ -8,10 +8,6 @@ import (
 	"strings"
 )
 
-const (
-	orchestrationLabel = "io.rancher.container.orchestration"
-)
-
 type ErrClusterNotReady struct {
 	err error
 }
@@ -30,7 +26,7 @@ func IsErrClusterNotReady(err error) bool {
 }
 
 func (p *Project) checkClusterReady() error {
-	if p.Cluster.K8sClientConfig == nil || !p.deploysToKubernetes() {
+	if p.Cluster.K8sClientConfig == nil || len(p.Config.KubernetesResources) == 0 {
 		return nil
 	}
 
@@ -56,23 +52,6 @@ func (p *Project) checkClusterReady() error {
 	}
 
 	return nil
-}
-
-func (p *Project) deploysToKubernetes() bool {
-	if len(p.Config.KubernetesResources) > 0 {
-		return true
-	}
-	for _, service := range p.Config.Services {
-		if _, ok := service.Labels[orchestrationLabel]; !ok {
-			return true
-		}
-	}
-	for _, container := range p.Config.Containers {
-		if _, ok := container.Labels[orchestrationLabel]; !ok {
-			return true
-		}
-	}
-	return false
 }
 
 // TODO: move this code into go-rancher
