@@ -79,6 +79,10 @@ func (p *Project) load(file string, bytes []byte) error {
 }
 
 func (p *Project) create(ctx context.Context, options options.Options, start bool) error {
+	if err := p.checkClusterReady(); err != nil {
+		return err
+	}
+
 	if options.NoRecreate && options.ForceRecreate {
 		return fmt.Errorf("no-recreate and force-recreate cannot be combined")
 	}

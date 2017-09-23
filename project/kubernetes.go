@@ -1,4 +1,4 @@
-package handlers
+package project
 
 import (
 	"github.com/rancher/go-rancher/v3"
@@ -8,34 +8,38 @@ import (
 	"strings"
 )
 
-type errClusterNotReady struct {
+const (
+	orchestrationLabel = "io.rancher.container.orchestration"
+)
+
+type ErrClusterNotReady struct {
 	err error
 }
 
-func (e errClusterNotReady) Error() string {
+func (e ErrClusterNotReady) Error() string {
 	return e.err.Error()
 }
 
 func NewErrClusterNotReady(err error) error {
-	return errClusterNotReady{err}
+	return ErrClusterNotReady{err}
 }
 
 func IsErrClusterNotReady(err error) bool {
-	_, ok := err.(errClusterNotReady)
+	_, ok := err.(ErrClusterNotReady)
 	return ok
 }
 
-func checkClusterReady(rancherClient *client.RancherClient, cluster *client.Cluster) error {
-	if cluster.K8sClientConfig == nil {
+func (p *Project) checkClusterReady() error {
+	if p.Cluster.K8sClientConfig == nil || !p.deploysToKubernetes() {
 		return nil
 	}
 
 	config := &rest.Config{
-		Host:        getHost(rancherClient, cluster),
-		BearerToken: cluster.K8sClientConfig.BearerToken,
+		Host:        getHost(p.Client, p.Cluster),
+		BearerToken: p.Cluster.K8sClientConfig.BearerToken,
 	}
 
-	if !strings.HasPrefix(cluster.K8sClientConfig.Address, "http://") {
+	if !strings.HasPrefix(p.Cluster.K8sClientConfig.Address, "http://") {
 		config.TLSClientConfig = rest.TLSClientConfig{
 			// TODO
 			Insecure: true,
@@ -47,12 +51,28 @@ func checkClusterReady(rancherClient *client.RancherClient, cluster *client.Clus
 		return NewErrClusterNotReady(err)
 	}
 
-	_, err = clientset.Discovery().ServerVersion()
-	if err != nil {
+	if _, err = clientset.Discovery().ServerVersion(); err != nil {
 		return NewErrClusterNotReady(err)
 	}
 
 	return nil
+}
+
+func (p *Project) deploysToKubernetes() bool {
+	if len(p.Config.KubernetesResources) > 0 {
+		return true
+	}
+	for _, service := range p.Config.Services {
+		if _, ok := service.Labels[orchestrationLabel]; !ok {
+			return true
+		}
+	}
+	for _, container := range p.Config.Containers {
+		if _, ok := container.Labels[orchestrationLabel]; !ok {
+			return true
+		}
+	}
+	return false
 }
 
 // TODO: move this code into go-rancher
