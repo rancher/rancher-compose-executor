@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/rancher/rancher-compose-executor/config"
 	legacyClient "github.com/rancher/go-rancher/client"
+	"github.com/rancher/rancher-compose-executor/config"
 )
 
 func TestGenerateHAProxyConf(t *testing.T) {
@@ -14,7 +14,7 @@ func TestGenerateHAProxyConf(t *testing.T) {
 		RancherConfig: config.RancherConfig{
 			LegacyLoadBalancerConfig: &legacyClient.LoadBalancerConfig{
 				HaproxyConfig: &legacyClient.HaproxyConfig{
-					Global: "daemon\nmaxconn 256",
+					Global:   "daemon\nmaxconn 256",
 					Defaults: "mode http",
 				},
 			},
@@ -33,7 +33,7 @@ defaults
 		RancherConfig: config.RancherConfig{
 			LegacyLoadBalancerConfig: &legacyClient.LoadBalancerConfig{
 				HaproxyConfig: &legacyClient.HaproxyConfig{
-					Global: "daemon\n",
+					Global:   "daemon\n",
 					Defaults: "",
 				},
 			},
@@ -48,7 +48,7 @@ defaults
 		RancherConfig: config.RancherConfig{
 			LegacyLoadBalancerConfig: &legacyClient.LoadBalancerConfig{
 				HaproxyConfig: &legacyClient.HaproxyConfig{
-					Global: "",
+					Global:   "",
 					Defaults: "mode http",
 				},
 			},
