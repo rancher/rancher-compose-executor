@@ -29,6 +29,10 @@ func doUp(event *events.Event, apiClient *client.RancherClient, msg string, forc
 	logger.Infof("%s Event Received", msg)
 
 	if err := stackUp(event, apiClient, forceUp); err != nil {
+		if IsErrClusterNotReady(err) {
+			publishTransitioningReply("Waiting for cluster to be ready", event, apiClient, false)
+			return nil
+		}
 		logger.Errorf("%s Event Failed: %v", msg, err)
 		if err != service.ErrTimeout {
 			publishTransitioningReply(err.Error(), event, apiClient, true)
@@ -55,6 +59,10 @@ func stackUp(event *events.Event, apiClient *client.RancherClient, forceUp bool)
 	}
 	if cluster == nil {
 		return errors.New("Failed to find cluster")
+	}
+
+	if err := checkClusterReady(apiClient, cluster); err != nil {
+		return err
 	}
 
 	project, err := constructProject(stack, cluster, *apiClient.GetOpts())
