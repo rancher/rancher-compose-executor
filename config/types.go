@@ -212,34 +212,34 @@ type RancherConfig struct {
 
 // TODO: json tags needed?
 type PortRule struct {
-	SourcePort  int    `json:"source_port" yaml:"source_port"`
-	Protocol    string `json:"protocol" yaml:"protocol"`
-	Path        string `json:"path" yaml:"path"`
-	Hostname    string `json:"hostname" yaml:"hostname"`
-	Service     string `json:"service" yaml:"service"`
-	Container   string `json:"container" yaml:"container"`
-	TargetPort  int    `json:"target_port" yaml:"target_port"`
-	Priority    int    `json:"priority" yaml:"priority"`
-	BackendName string `json:"backend_name" yaml:"backend_name"`
-	Selector    string `json:"selector" yaml:"selector"`
+	SourcePort  int    `json:"source_port,omitempty" yaml:"source_port,omitempty"`
+	Protocol    string `json:"protocol,omitempty" yaml:"protocol,omitempty"`
+	Path        string `json:"path,omitempty" yaml:"path,omitempty"`
+	Hostname    string `json:"hostname,omitempty" yaml:"hostname,omitempty"`
+	Service     string `json:"service,omitempty" yaml:"service,omitempty"`
+	Container   string `json:"container,omitempty" yaml:"container,omitempty"`
+	TargetPort  int    `json:"target_port,omitempty" yaml:"target_port,omitempty"`
+	Priority    int    `json:"priority,omitempty" yaml:"priority,omitempty"`
+	BackendName string `json:"backend_name,omitempty" yaml:"backend_name,omitempty"`
+	Selector    string `json:"selector,omitempty" yaml:"selector,omitempty"`
 }
 
 type LBStickinessPolicy struct {
-	Name     string `json:"name" yaml:"name"`
-	Cookie   string `json:"cookie" yaml:"cookie"`
-	Domain   string `json:"domain" yaml:"domain"`
-	Indirect bool   `json:"indirect" yaml:"indirect"`
-	Nocache  bool   `json:"nocache" yaml:"nocache"`
-	Postonly bool   `json:"postonly" yaml:"postonly"`
-	Mode     string `json:"mode" yaml:"mode"`
+	Name     string `json:"name,omitempty" yaml:"name,omitempty"`
+	Cookie   string `json:"cookie,omitempty" yaml:"cookie,omitempty"`
+	Domain   string `json:"domain,omitempty" yaml:"domain,omitempty"`
+	Indirect bool   `json:"indirect,omitempty" yaml:"indirect,omitempty"`
+	Nocache  bool   `json:"nocache,omitempty" yaml:"nocache,omitempty"`
+	Postonly bool   `json:"postonly,omitempty" yaml:"postonly,omitempty"`
+	Mode     string `json:"mode,omitempty" yaml:"mode,omitempty"`
 }
 
 type LBConfig struct {
-	Certs            []string            `json:"certs" yaml:"certs"`
-	DefaultCert      string              `json:"default_cert" yaml:"default_cert"`
-	PortRules        []PortRule          `json:"port_rules" yaml:"port_rules"`
-	Config           string              `json:"config" yaml:"config"`
-	StickinessPolicy *LBStickinessPolicy `json:"stickiness_policy" yaml:"stickiness_policy"`
+	Certs            []string            `json:"certs,omitempty" yaml:"certs,omitempty"`
+	DefaultCert      string              `json:"default_cert,omitempty" yaml:"default_cert,omitempty"`
+	PortRules        []PortRule          `json:"port_rules,omitempty" yaml:"port_rules,omitempty"`
+	Config           string              `json:"config,omitempty" yaml:"config,omitempty"`
+	StickinessPolicy *LBStickinessPolicy `json:"stickiness_policy,omitempty" yaml:"stickiness_policy,omitempty"`
 }
 
 // VolumeConfig holds v2 volume configuration
