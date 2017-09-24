@@ -1,7 +1,10 @@
 package convert
 
 import (
+	"strings"
+
 	"github.com/rancher/go-rancher/v3"
+	"github.com/rancher/rancher-compose-executor/config"
 	"github.com/rancher/rancher-compose-executor/project"
 	"github.com/rancher/rancher-compose-executor/utils"
 )
@@ -26,6 +29,7 @@ func Service(p *project.Project, name string) (*client.Service, error) {
 		HealthCheck:            serviceConfig.HealthCheck,
 		StorageDriver:          serviceConfig.StorageDriver,
 		NetworkDriver:          serviceConfig.NetworkDriver,
+		ServiceLinks:           populateServiceLink(serviceConfig),
 		SecondaryLaunchConfigs: secondaryLaunchConfigs,
 	}
 
@@ -51,6 +55,25 @@ func populateCreateOnly(service *client.Service) {
 			service.CreateOnly = true
 		}
 	}
+}
+
+func populateServiceLink(service *config.ServiceConfig) []client.Link {
+	r := []client.Link{}
+	for _, link := range service.Links {
+		parts := strings.SplitN(link, ":", 2)
+		if len(parts) == 2 {
+			r = append(r, client.Link{
+				Alias: parts[0],
+				Name:  parts[1],
+			})
+		} else {
+			r = append(r, client.Link{
+				Alias: parts[0],
+				Name:  parts[0],
+			})
+		}
+	}
+	return r
 }
 
 func max(i, j int64) int64 {

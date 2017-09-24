@@ -747,6 +747,8 @@ func convertLinks(serviceConfig *config.ServiceConfig, service v3.Service) {
 		parts := strings.SplitN(link.Name, "/", 2)
 		if len(parts) > 1 {
 			serviceConfig.Links = append(serviceConfig.Links, fmt.Sprintf("%s:%s", link.Alias, parts[1]))
+		} else {
+			serviceConfig.Links = append(serviceConfig.Links, fmt.Sprintf("%s:%s", link.Alias, parts[0]))
 		}
 	}
 }
