@@ -363,6 +363,7 @@ func mergeDockerCompose(serviceConfig *config.ServiceConfig, launchConfig v3.Lau
 	serviceConfig.Devices = launchConfig.Devices
 	convertEnvironmentVariable(serviceConfig, launchConfig.Environment)
 	convertSelectorLabel(serviceConfig, service)
+	convertLinks(serviceConfig, service)
 	convertLogOptions(serviceConfig, launchConfig)
 	convertTmpfs(serviceConfig, launchConfig)
 	convertUlimit(serviceConfig, launchConfig)
@@ -734,6 +735,18 @@ func convertBlkioOptionsStandalone(serviceConfig *config.ServiceConfig, containe
 			} else if t == blkioWriteIops {
 				serviceConfig.DeviceWriteIOps = append(serviceConfig.DeviceWriteIOps, value)
 			}
+		}
+	}
+}
+
+func convertLinks(serviceConfig *config.ServiceConfig, service v3.Service) {
+	for _, link := range service.ServiceLinks {
+		if serviceConfig.Links == nil {
+			serviceConfig.Links = []string{}
+		}
+		parts := strings.SplitN(link.Name, "/", 2)
+		if len(parts) > 1 {
+			serviceConfig.Links = append(serviceConfig.Links, fmt.Sprintf("%s:%s", link.Alias, parts[1]))
 		}
 	}
 }
