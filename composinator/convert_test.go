@@ -107,6 +107,16 @@ func (s *ConvertTestSuite) TestExportConfig(c *check.C) {
 			},
 		},
 	}
+	service.ServiceLinks = []v3.Link{
+		{
+			Name:  "default1/link-1",
+			Alias: "l1",
+		},
+		{
+			Name:  "default/link-2",
+			Alias: "l2",
+		},
+	}
 	service.Metadata = metadata
 	service.LaunchConfig.RetainIp = true
 	service.Name = "strongmonkey"
@@ -121,6 +131,7 @@ func (s *ConvertTestSuite) TestExportConfig(c *check.C) {
 		Secrets:              map[string]v3.Secret{},
 	}
 	stackData.Services[service.Id] = service
+	stackData.StackName = "default"
 	dockerCompose, rancherCompose, _, err := createComposeData(stackData, "split")
 	if err != nil {
 		c.Fatal(err)
@@ -183,6 +194,7 @@ func (s *ConvertTestSuite) TestExportConfig(c *check.C) {
 	c.Assert(serviceConfig.Sysctls, check.DeepEquals, cyaml.SliceorMap{
 		"net.ipv4.ip_forward": "1",
 	})
+	c.Assert(serviceConfig.Links, check.DeepEquals, cyaml.MaporColonSlice{"l1:default1/link-1", "l2:link-2"})
 	c.Assert(rancherConfig.Version, check.Equals, "2")
 	rancherServiceConfig := rancherConfig.Services[service.Name]
 	c.Assert(rancherServiceConfig.Scale, check.Equals, cyaml.StringorInt(0))

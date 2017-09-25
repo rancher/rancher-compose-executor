@@ -57,6 +57,7 @@ func convert(w http.ResponseWriter, client *v3.RancherClient, input convertOptio
 // StackData is the metadata for exporting compose file for a stack. All maps use resource.id as its ley except volumeTemplates,
 // which uses its name.
 type StackData struct {
+	StackName            string
 	Services             map[string]v3.Service
 	StandaloneContainers map[string]v3.Container
 	VolumeTemplates      map[string]v3.VolumeTemplate
@@ -76,6 +77,12 @@ func GetStackData(client *v3.RancherClient, stackID string) (StackData, error) {
 		PortRuleContainers:   map[string]v3.Container{},
 		Secrets:              map[string]v3.Secret{},
 	}
+
+	stack, err := client.Stack.ById(stackID)
+	if err != nil {
+		return StackData{}, err
+	}
+	stackData.StackName = stack.Name
 
 	// services
 	services, err := client.Service.List(&v3.ListOpts{
@@ -208,7 +215,7 @@ func createCombinedComposeData(stackData StackData) (string, error) {
 				convertSecret(serviceConfig, secretConfig, launchConfig.Secrets, stackData.Secrets)
 
 				// docker-compose
-				mergeDockerCompose(serviceConfig, launchConfig, service)
+				mergeDockerCompose(serviceConfig, launchConfig, service, stackData.StackName)
 
 				//rancher-compose
 				mergeRancherCompose(serviceConfig, service, launchConfig, stackData.Certificates, stackData.PortRuleServices, stackData.PortRuleContainers)
@@ -265,7 +272,7 @@ func createSplitComposeData(stackData StackData) (string, string, error) {
 				convertSecret(serviceDockerConfig, secretConfig, launchConfig.Secrets, stackData.Secrets)
 
 				// docker-compose
-				mergeDockerCompose(serviceDockerConfig, launchConfig, service)
+				mergeDockerCompose(serviceDockerConfig, launchConfig, service, stackData.StackName)
 
 				//rancher-compose
 				mergeRancherCompose(serviceRancherConfig, service, launchConfig, stackData.Certificates, stackData.PortRuleServices, stackData.PortRuleContainers)
@@ -313,7 +320,7 @@ func createSplitComposeData(stackData StackData) (string, string, error) {
 	return string(d), string(r), nil
 }
 
-func mergeDockerCompose(serviceConfig *config.ServiceConfig, launchConfig v3.LaunchConfig, service v3.Service) {
+func mergeDockerCompose(serviceConfig *config.ServiceConfig, launchConfig v3.LaunchConfig, service v3.Service, stackName string) {
 	serviceConfig.Image = launchConfig.Image
 	serviceConfig.Command = launchConfig.Command
 	serviceConfig.Ports = launchConfig.Ports
@@ -363,7 +370,7 @@ func mergeDockerCompose(serviceConfig *config.ServiceConfig, launchConfig v3.Lau
 	serviceConfig.Devices = launchConfig.Devices
 	convertEnvironmentVariable(serviceConfig, launchConfig.Environment)
 	convertSelectorLabel(serviceConfig, service)
-	convertLinks(serviceConfig, service)
+	convertLinks(serviceConfig, service, stackName)
 	convertLogOptions(serviceConfig, launchConfig)
 	convertTmpfs(serviceConfig, launchConfig)
 	convertUlimit(serviceConfig, launchConfig)
@@ -425,6 +432,7 @@ func mergeDockerComposeStandalone(serviceConfig *config.ServiceConfig, container
 	convertUlimitStandalone(serviceConfig, container)
 	convertRestartPolicyStandalone(serviceConfig, container)
 	convertBlkioOptionsStandalone(serviceConfig, container)
+
 }
 
 func mergeRancherCompose(serviceConfig *config.ServiceConfig, service v3.Service, launchConfig v3.LaunchConfig, certMap map[string]v3.Certificate, serviceMap map[string]v3.Service, containerMap map[string]v3.Container) {
@@ -739,16 +747,16 @@ func convertBlkioOptionsStandalone(serviceConfig *config.ServiceConfig, containe
 	}
 }
 
-func convertLinks(serviceConfig *config.ServiceConfig, service v3.Service) {
+func convertLinks(serviceConfig *config.ServiceConfig, service v3.Service, stackName string) {
 	for _, link := range service.ServiceLinks {
 		if serviceConfig.Links == nil {
 			serviceConfig.Links = []string{}
 		}
 		parts := strings.SplitN(link.Name, "/", 2)
-		if len(parts) > 1 {
+		if len(parts) > 1 && parts[0] == stackName {
 			serviceConfig.Links = append(serviceConfig.Links, fmt.Sprintf("%s:%s", link.Alias, parts[1]))
 		} else {
-			serviceConfig.Links = append(serviceConfig.Links, fmt.Sprintf("%s:%s", link.Alias, parts[0]))
+			serviceConfig.Links = append(serviceConfig.Links, fmt.Sprintf("%s:%s", link.Alias, link.Name))
 		}
 	}
 }
