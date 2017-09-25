@@ -41,15 +41,17 @@ func transferFields(from, to config.RawService, prefixField string, instance int
 }
 
 func createRawConfig(contents []byte) (*config.RawConfig, error) {
-	resourceName, resource, err := kubernetes.GetResource(contents)
+	resources, err := kubernetes.GetResources(contents)
 	if err != nil {
 		return nil, err
 	}
-	if resource != nil {
+	if len(resources) > 0 {
+		kubernetesResources := map[string]interface{}{}
+		for _, resource := range resources {
+			kubernetesResources[resource.CombinedName] = resource.ResourceContents
+		}
 		return &config.RawConfig{
-			KubernetesResources: map[string]interface{}{
-				resourceName: resource,
-			},
+			KubernetesResources: kubernetesResources,
 		}, nil
 	}
 

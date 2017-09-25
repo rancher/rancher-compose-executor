@@ -1,30 +1,71 @@
 package kubernetes
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
+	"strings"
+
 	"gopkg.in/yaml.v2"
 )
 
-type kubernetesResource struct {
+type KubernetesResource struct {
 	Kind             string             `yaml:"kind,omitempty"`
-	Metadata         kubernetesMetadata `yaml:"metadata,omitempty"`
+	Metadata         KubernetesMetadata `yaml:"metadata,omitempty"`
+	CombinedName     string
 	ResourceContents map[string]interface{}
 }
 
-type kubernetesMetadata struct {
+type KubernetesMetadata struct {
 	Name string `yaml:"name,omitempty"`
 }
 
-func GetResource(contents []byte) (string, map[string]interface{}, error) {
-	var resource kubernetesResource
+func GetResources(contents []byte) ([]*KubernetesResource, error) {
+	documents := splitMultiDocument(contents)
+	var resources []*KubernetesResource
+	for _, contents := range documents {
+		resource, err := getResource(contents)
+		if err != nil {
+			return nil, err
+		}
+		if resource != nil {
+			resources = append(resources, resource)
+		}
+	}
+	return resources, nil
+}
+
+func splitMultiDocument(contents []byte) [][]byte {
+	var documents [][]byte
+	var currentResource []string
+	scanner := bufio.NewScanner(bytes.NewReader(contents))
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.Trim(line, " \t") == "---" {
+			if len(currentResource) > 0 {
+				documents = append(documents, []byte(strings.Join(currentResource, "\n")))
+			}
+			currentResource = nil
+		}
+		currentResource = append(currentResource, line)
+	}
+	if len(currentResource) > 0 {
+		documents = append(documents, []byte(strings.Join(currentResource, "\n")))
+	}
+	return documents
+}
+
+func getResource(contents []byte) (*KubernetesResource, error) {
+	var resource KubernetesResource
 	if err := yaml.Unmarshal(contents, &resource); err != nil {
-		return "", nil, err
+		return nil, err
 	}
 	if resource.Kind == "" || resource.Metadata.Name == "" {
-		return "", nil, nil
+		return nil, nil
 	}
 	if err := yaml.Unmarshal(contents, &resource.ResourceContents); err != nil {
-		return "", nil, err
+		return nil, err
 	}
-	return fmt.Sprintf("%s/%s", resource.Kind, resource.Metadata.Name), resource.ResourceContents, nil
+	resource.CombinedName = fmt.Sprintf("%s/%s", resource.Kind, resource.Metadata.Name)
+	return &resource, nil
 }
