@@ -3,12 +3,13 @@ package handlers
 import (
 	"errors"
 
+	"os"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/rancher/event-subscriber/events"
 	"github.com/rancher/go-rancher/v3"
 	"github.com/rancher/rancher-compose-executor/kubectl"
 	"github.com/rancher/rancher-compose-executor/parser/kubernetes"
-	"os"
 )
 
 func RemoveStack(event *events.Event, apiClient *client.RancherClient) error {
@@ -68,12 +69,15 @@ func stackRemove(event *events.Event, apiClient *client.RancherClient) error {
 	defer os.Remove(kubeconfigLocation)
 
 	for _, template := range stack.Templates {
-		name, resource, err := kubernetes.GetResource([]byte(template))
-		if err != nil || resource == nil {
+		resources, err := kubernetes.GetResources([]byte(template))
+		if err != nil {
 			continue
 		}
-		if err := kubectl.Delete(kubeconfigLocation, name, namespace, resource); err != nil {
-			return err
+		for _, resource := range resources {
+			if err := kubectl.Delete(kubeconfigLocation, resource.CombinedName,
+				namespace, resource); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

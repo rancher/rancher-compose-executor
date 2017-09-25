@@ -6,37 +6,63 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetResource(t *testing.T) {
-	resourceName, resource, err := GetResource([]byte(`
+func TestGetResources(t *testing.T) {
+	resources, err := GetResources([]byte(`
 apiVersion: v1
 kind: Pod
 metadata:
   name: test
 `))
 	assert.NoError(t, err)
-	assert.Equal(t, "Pod/test", resourceName)
+	assert.Len(t, resources, 1)
+	assert.Equal(t, "test", resources[0].Metadata.Name)
 	assert.Equal(t, map[string]interface{}{
 		"apiVersion": "v1",
 		"kind":       "Pod",
 		"metadata": map[interface{}]interface{}{
 			"name": "test",
 		},
-	}, resource)
+	}, resources[0].ResourceContents)
 
-	resourceName, resource, err = GetResource([]byte(`
-s1:
-  image: nginx
-`))
+	resources, err = GetResources([]byte(`
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test2`))
 	assert.NoError(t, err)
-	assert.Empty(t, resourceName)
-	assert.Nil(t, resource)
+	assert.Len(t, resources, 2)
+	assert.Equal(t, "test", resources[0].Metadata.Name)
+	assert.Equal(t, "test2", resources[1].Metadata.Name)
+	assert.Equal(t, map[string]interface{}{
+		"apiVersion": "v1",
+		"kind":       "Pod",
+		"metadata": map[interface{}]interface{}{
+			"name": "test",
+		},
+	}, resources[0].ResourceContents)
+	assert.Equal(t, map[string]interface{}{
+		"apiVersion": "v1",
+		"kind":       "Pod",
+		"metadata": map[interface{}]interface{}{
+			"name": "test2",
+		},
+	}, resources[1].ResourceContents)
 
-	resourceName, resource, err = GetResource([]byte(`
+	resources, err = GetResources([]byte(`
+s1:
+  image: nginx`))
+	assert.NoError(t, err)
+	assert.Len(t, resources, 0)
+
+	resources, err = GetResources([]byte(`
 services:
   s1:
-    image: nginx
-`))
+    image: nginx`))
 	assert.NoError(t, err)
-	assert.Empty(t, resourceName)
-	assert.Nil(t, resource)
+	assert.Len(t, resources, 0)
 }
