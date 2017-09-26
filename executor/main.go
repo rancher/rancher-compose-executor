@@ -29,7 +29,7 @@ func Main() {
 	eventHandlers := map[string]events.EventHandler{
 		"stack.create": handlers.WithTimeout(handlers.CreateStack),
 		"stack.update": handlers.WithTimeout(handlers.UpdateStack),
-		"stack.remove": handlers.WithTimeout(handlers.RemoveStack),
+		"stack.remove": handlers.WithTimeout(handlers.DeleteStack),
 		"ping": func(event *events.Event, apiClient *client.RancherClient) error {
 			return nil
 		},
