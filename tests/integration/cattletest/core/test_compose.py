@@ -2171,6 +2171,111 @@ child:
     assert len(ids) == 5
 
 
+def test_service_prune(client, compose):
+    template_one = '''
+service-one:
+    labels:
+      service-one: value-one
+    tty: true
+    image: ubuntu:14.04.3
+
+service-two:
+    labels:
+      service-two: value-two
+    tty: true
+    image: ubuntu:14.04.3
+
+service-three:
+    labels:
+      service-three: value-three
+    tty: true
+    image: ubuntu:14.04.3
+'''
+    template_two = '''
+service-one:
+    labels:
+      service-one: value-one
+    tty: true
+    image: ubuntu:14.04.3
+
+service-two:
+    labels:
+      service-two: value-two
+    tty: true
+    image: ubuntu:14.04.3
+
+service-four:
+    labels:
+      service-four: value-four
+    tty: true
+    image: ubuntu:14.04.3
+'''
+    project_name = create_project(compose, input=template_one)
+    project = find_one(client.list_stack, name=project_name)
+    assert len(project.services()) == 3
+    compose.check_call(template_one, '-p', project_name, '-f', '-', 'up', '-d')
+
+    service_one = _get_service(project.services(), 'service-one')
+    assert service_one.state == "active"
+    assert service_one.name == "service-one"
+
+    instances_one = service_one.instances()
+    assert len(instances_one) == 1
+    for instance in instances_one:
+        assert instance.state == "running"
+
+    service_two = _get_service(project.services(), 'service-two')
+    assert service_two.state == "active"
+    assert service_two.name == "service-two"
+
+    instances_two = service_two.instances()
+    assert len(instances_two) == 1
+    for instance in instances_two:
+        assert instance.state == "running"
+
+    service_three = _get_service(project.services(), 'service-three')
+    assert service_three.state == "active"
+    assert service_three.name == "service-three"
+
+    instances_three = service_three.instances()
+    assert len(instances_three) == 1
+    for instance in instances_three:
+        assert instance.state == "running"
+
+    compose.check_call(template_two, '-p', project_name, '-f', '-', 'up',
+                       '--prune', '-d')
+
+    assert service_one.state == "active"
+    assert len(instances_one) == 1
+    for instance in instances_one:
+        assert instance.state == "running"
+
+    assert service_two.state == "active"
+    assert len(instances_two) == 1
+    for instance in instances_two:
+        assert instance.state == "running"
+
+    service_four = _get_service(project.services(), 'service-four')
+    assert service_four.state == "active"
+    assert service_four.name == "service-four"
+
+    instances_four = service_four.instances()
+    assert len(instances_four) == 1
+    for instance in instances_four:
+        assert instance.state == "running"
+
+    service_three = client.wait_success(service_three, 60)
+    assert service_three.state == "removed"
+    assert service_three.name == "service-three"
+
+    for instance in instances_three:
+        wait_for_condition(
+            client, instance,
+            lambda x: x.state == 'removed')
+        instance = client.reload(instance)
+        assert instance.state == "removed"
+
+
 def test_virtual_machine(client, compose):
     template = '''
 vm:
