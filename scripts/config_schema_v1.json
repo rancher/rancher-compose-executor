@@ -49,6 +49,7 @@
         "dns_search": {"$ref": "#/definitions/string_or_list"},
         "dockerfile": {"type": "string"},
         "domainname": {"type": "string"},
+        "drain_timeout_ms": {"type": ["number", "string"]},
         "entrypoint": {
           "oneOf": [
             {"type": "string"},

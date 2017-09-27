@@ -29,6 +29,7 @@ web:
     user: somebody
     hostname: myhostname
     domainname: example.com
+    drain_timeout_ms: 10000
     mem_limit: 100
     memswap_limit: 101
     privileged: true
