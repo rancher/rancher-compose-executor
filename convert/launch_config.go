@@ -36,6 +36,7 @@ func serviceConfigToLaunchConfig(serviceConfig config.ServiceConfig, p *project.
 	launchConfig.CreateOnly = serviceConfig.CreateOnly
 	launchConfig.DataVolumesFrom = serviceConfig.VolumesFrom
 	launchConfig.DataVolumes = volumes(serviceConfig, p)
+	launchConfig.DependsOn = depends(serviceConfig.DependsOn)
 	launchConfig.Devices = setupDevice(serviceConfig.Devices)
 	launchConfig.DnsOpt = serviceConfig.DNSOpt
 	launchConfig.DnsSearch = serviceConfig.DNSSearch
@@ -104,6 +105,29 @@ func serviceConfigToLaunchConfig(serviceConfig config.ServiceConfig, p *project.
 	}
 
 	return launchConfig, nil
+}
+
+func depends(dependencies config.Dependencies) []client.DependsOn {
+	var result []client.DependsOn
+
+	for name, dep := range dependencies {
+		if dep.Condition == "" {
+			dep.Condition = "healthy"
+		}
+		newDep := client.DependsOn{
+			Condition: dep.Condition,
+		}
+
+		if dep.Container {
+			newDep.Container = name
+		} else {
+			newDep.Service = name
+		}
+
+		result = append(result, newDep)
+	}
+
+	return result
 }
 
 func isContainerRef(ref string) bool {

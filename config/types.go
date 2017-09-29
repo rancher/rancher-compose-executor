@@ -125,7 +125,7 @@ type ServiceConfig struct {
 	Devices           []string             `yaml:"devices,omitempty"`
 	DeviceWriteBps    yaml.MaporColonSlice `yaml:"device_write_bps,omitempty"`
 	DeviceWriteIOps   yaml.MaporColonSlice `yaml:"device_write_iops,omitempty"`
-	DependsOn         []string             `yaml:"depends_on,omitempty"`
+	DependsOn         Dependencies         `yaml:"depends_on,omitempty"`
 	DNS               yaml.Stringorslice   `yaml:"dns,omitempty"`
 	DNSOpt            []string             `yaml:"dns_opt,omitempty"`
 	DNSSearch         yaml.Stringorslice   `yaml:"dns_search,omitempty"`

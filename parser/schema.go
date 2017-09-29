@@ -285,7 +285,7 @@ var servicesSchemaDataV2 = `{
         "cpu_quota": {"type": ["number", "string"]},
         "cpuset": {"type": "string"},
         "default_cert": {"type": "string"},
-        "depends_on": {"$ref": "#/definitions/list_of_strings"},
+        "depends_on": {"$ref": "#/definitions/list_or_object"},
         "description": {"type": "string"},
         "device_read_bps": {"$ref": "#/definitions/list_or_dict"},
         "device_read_iops": {"$ref": "#/definitions/list_or_dict"},
@@ -565,6 +565,14 @@ var servicesSchemaDataV2 = `{
         {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
       ]
     },
+
+    "list_or_object": {
+      "oneOf": [
+        {"type": "object"},
+        {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      ]
+    },
+
 
     "constraints": {
       "service": {
