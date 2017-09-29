@@ -573,7 +573,6 @@ var servicesSchemaDataV2 = `{
       ]
     },
 
-
     "constraints": {
       "service": {
         "id": "#/definitions/constraints/service",
