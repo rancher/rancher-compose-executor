@@ -308,6 +308,8 @@ def test_args(client, compose):
             "net.core.somaxconn": "1024"
         }
         assert launch_config.runInit is True
+        # TODO uncomment after cattle release is updated
+        # assert launch_config.drainTimeoutMs == 10000
         # TODO: test isolation
         # Not supported
         # assert launch_config.externalLinks == ['foo', 'bar']

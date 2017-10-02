@@ -63,6 +63,7 @@
         "dns_opt": {"$ref": "#/definitions/list_or_dict"},
         "dns_search": {"$ref": "#/definitions/string_or_list"},
         "domainname": {"type": "string"},
+        "drain_timeout_ms": {"type": ["number", "string"]},
         "entrypoint": {
           "oneOf": [
             {"type": "string"},
