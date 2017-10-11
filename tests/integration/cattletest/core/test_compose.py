@@ -554,6 +554,132 @@ def test_lb_basic(client, compose):
         assert lb.lbConfig.portRules[1].targetPort == 80
 
 
+def test_lb_regions(client, compose):
+    template = '''
+    version: '2'
+    load_balancers:
+        lb:
+            image: rancher/lb-service-haproxy
+            port_rules:
+            - source_port: 80
+              target_port: 80
+              selector: foo=bar
+              region: region1
+              environment: foo
+              weight: 145'''
+
+    project_name = create_project(compose, input=template)
+
+    project = find_one(client.list_stack, name=project_name)
+    assert len(project.services()) == 1
+    lb = _get_service(project.services(), 'lb')
+
+    assert lb.lbConfig is not None
+    assert len(lb.lbConfig.portRules) == 1
+
+    assert lb.lbConfig.portRules[0].region == "region1"
+    assert lb.lbConfig.portRules[0].sourcePort == 80
+    assert lb.lbConfig.portRules[0].targetPort == 80
+    assert lb.lbConfig.portRules[0].weight == 145
+
+
+def test_lb_regions_upgrade(client, compose):
+    template = '''
+    version: '2'
+    load_balancers:
+        lb:
+            image: rancher/lb-service-haproxy
+            port_rules:
+            - source_port: 80
+              target_port: 80
+              selector: foo=bar
+              region: region1
+              environment: foo
+              weight: 145
+            - source_port: 222
+              target_port: 333
+              protocol: tcp
+              service: web
+        web:
+            image: nginx'''
+
+    project_name = create_project(compose, input=template)
+
+    project = find_one(client.list_stack, name=project_name)
+    assert len(project.services()) == 2
+    lb = _get_service(project.services(), 'lb')
+    web = _get_service(project.services(), 'web')
+
+    assert lb.lbConfig is not None
+    assert len(lb.lbConfig.portRules) == 2
+
+    assert lb.lbConfig.portRules[0].region == "region1"
+    assert lb.lbConfig.portRules[0].sourcePort == 80
+    assert lb.lbConfig.portRules[0].targetPort == 80
+    assert lb.lbConfig.portRules[0].weight == 145
+
+    assert lb.lbConfig.portRules[1].sourcePort == 222
+    assert lb.lbConfig.portRules[1].targetPort == 333
+    assert lb.lbConfig.portRules[1].weight == 1
+    assert lb.lbConfig.portRules[1].serviceId == web.id
+    assert lb.lbConfig.portRules[1].protocol == 'tcp'
+
+    template2 = '''
+    version: '2'
+    load_balancers:
+        lb:
+            image: rancher/lb-service-haproxy
+            port_rules:
+            - source_port: 222
+              target_port: 333
+              protocol: tcp
+              service: web
+        web:
+            image: nginx'''
+
+    compose.check_call(template2, '-p', project_name, '-f', '-', 'up',
+                       '--upgrade', '-c', '-d')
+
+    project = find_one(client.list_stack, name=project_name)
+    assert len(project.services()) == 2
+    lb = _get_service(project.services(), 'lb')
+    web = _get_service(project.services(), 'web')
+
+    assert lb.lbConfig is not None
+    assert len(lb.lbConfig.portRules) == 1
+
+    assert lb.lbConfig.portRules[0].sourcePort == 222
+    assert lb.lbConfig.portRules[0].targetPort == 333
+    assert lb.lbConfig.portRules[0].weight == 1
+    assert lb.lbConfig.portRules[0].serviceId == web.id
+    assert lb.lbConfig.portRules[0].protocol == 'tcp'
+
+
+def test_lb_default_weight(client, compose):
+    template = '''
+    version: '2'
+    load_balancers:
+        lb:
+            image: rancher/lb-service-haproxy
+            port_rules:
+            - source_port: 80
+              target_port: 80
+              selector: foo=bar'''
+
+    project_name = create_project(compose, input=template)
+
+    project = find_one(client.list_stack, name=project_name)
+    assert len(project.services()) == 1
+    lb = _get_service(project.services(), 'lb')
+
+    assert lb.lbConfig is not None
+    assert len(lb.lbConfig.portRules) == 1
+
+    assert lb.lbConfig.portRules[0].sourcePort == 80
+    assert lb.lbConfig.portRules[0].targetPort == 80
+    assert lb.lbConfig.portRules[0].weight == 1
+
+
 def test_lb_private(client, compose):
     template_legacy = '''
     lb:
@@ -1480,6 +1606,88 @@ def test_dns_service(client, compose):
         names = {x.name for x in consumed}
 
         assert names == {'web1', 'web2'}
+
+
+def test_dns_service_regions(client, compose):
+    template = '''
+    web:
+        image: rancher/dns-service
+        links:
+        - region1/foo/stack1/alpha:alpha
+        - bar/stack2/beta:beta
+    '''
+
+    project_name = create_project(compose, input=template)
+
+    project = find_one(client.list_stack, name=project_name)
+    services = project.services()
+
+    assert len(services) == 1
+
+    web = _get_service(services, 'web')
+
+    assert web.type == 'dnsService'
+    maps = client.list_serviceConsumeMap(serviceId=web.id)
+
+    assert len(maps) == 2
+    names = {x.name for x in maps}
+
+    assert names == {'alpha', 'beta'}
+
+
+def test_dns_service_regions_upgrade(client, compose):
+    template = '''
+    web:
+        image: rancher/dns-service
+        links:
+        - region1/foo/stack1/alpha:alpha
+        - bar/stack2/beta:beta
+        - web1:alias
+    web1:
+        image: nginx
+    '''
+
+    project_name = create_project(compose, input=template)
+
+    project = find_one(client.list_stack, name=project_name)
+    services = project.services()
+
+    assert len(services) == 2
+
+    web = _get_service(services, 'web')
+
+    assert web.type == 'dnsService'
+    maps = client.list_serviceConsumeMap(serviceId=web.id)
+
+    assert len(maps) == 3
+    names = {x.name for x in maps}
+
+    assert names == {'alpha', 'beta', 'alias'}
+
+    template2 = '''
+    web:
+        image: rancher/dns-service
+        links:
+        - web1:alias
+    web1:
+        image: nginx
+    '''
+
+    compose.check_call(template2, '-p', project_name, '-f', '-', 'up',
+                       '--upgrade', '-c', '-d')
+
+    project = find_one(client.list_stack, name=project_name)
+    assert len(project.services()) == 2
+
+    web = _get_service(services, 'web')
+
+    assert web.type == 'dnsService'
+    maps = client.list_serviceConsumeMap(serviceId=web.id)
+
+    assert len(maps) == 1
+    names = {x.name for x in maps}
+
+    assert names == {'alias'}
 
 
 def test_up_relink(client, compose):
