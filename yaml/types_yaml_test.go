@@ -49,3 +49,24 @@ func TestDurationStringorIntYAML(t *testing.T) {
 		assert.Equal(t, DurationStringorInt(90), s2.Duration)
 	}
 }
+
+type StructStringorOctalInteger struct {
+	Mode StringorOctalInt
+}
+
+func TestStringorOctalIntYAML(t *testing.T) {
+	for _, str := range []string{`{mode: 0777}`, `{mode: "0777"}`} {
+		s := StructStringorOctalInteger{}
+		yaml.Unmarshal([]byte(str), &s)
+
+		assert.Equal(t, StringorOctalInt(777), s.Mode)
+
+		d, err := yaml.Marshal(&s)
+		assert.Nil(t, err)
+
+		s2 := StructStringorOctalInteger{}
+		yaml.Unmarshal(d, &s2)
+
+		assert.Equal(t, StringorOctalInt(777), s.Mode)
+	}
+}
