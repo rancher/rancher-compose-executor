@@ -55,11 +55,22 @@ type StructStringorOctalInteger struct {
 }
 
 func TestStringorOctalIntYAML(t *testing.T) {
-	for _, str := range []string{`{mode: 0777}`, `{mode: "0777"}`} {
+	testCases := map[string]string{
+		`{mode: 1777}`:   "1777",
+		`{mode: 0777}`:   "777",
+		`{mode: "777"}`:  "777",
+		`{mode: "0777"}`: "777",
+		`{mode: "1777"}`: "1777",
+	}
+	failTestCases := map[string]string{
+		`{mode: "292"}`:  "",
+		`{mode: "0292"}`: "",
+	}
+	for test, expected := range testCases {
 		s := StructStringorOctalInteger{}
-		yaml.Unmarshal([]byte(str), &s)
+		yaml.Unmarshal([]byte(test), &s)
 
-		assert.Equal(t, StringorOctalInt(777), s.Mode)
+		assert.Equal(t, StringorOctalInt(expected), s.Mode)
 
 		d, err := yaml.Marshal(&s)
 		assert.Nil(t, err)
@@ -67,6 +78,12 @@ func TestStringorOctalIntYAML(t *testing.T) {
 		s2 := StructStringorOctalInteger{}
 		yaml.Unmarshal(d, &s2)
 
-		assert.Equal(t, StringorOctalInt(777), s.Mode)
+		assert.Equal(t, StringorOctalInt(expected), s.Mode)
+	}
+
+	for test := range failTestCases {
+		s := StructStringorOctalInteger{}
+		err := yaml.Unmarshal([]byte(test), &s)
+		assert.NotNil(t, err)
 	}
 }
