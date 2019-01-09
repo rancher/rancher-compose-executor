@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"os"
+	"strconv"
 
 	"io/ioutil"
 	"net/http"
@@ -43,7 +45,7 @@ func NewEventRouter(name string, priority int, apiURL string, accessKey string, 
 	if apiClient == nil {
 		var err error
 		apiClient, err = client.NewRancherClient(&client.ClientOpts{
-			Timeout:   time.Second * 30,
+			Timeout:   time.Second * time.Duration(defaultTimeout()),
 			Url:       apiURL,
 			AccessKey: accessKey,
 			SecretKey: secretKey,
@@ -197,4 +199,12 @@ func (router *EventRouter) subscribeToEvents(subscribeURL string, accessKey stri
 
 func (router *EventRouter) GetWebSocketConn() *websocket.Conn {
 	return router.eventStream
+}
+
+func defaultTimeout() int {
+	defaultTimeout, _ := strconv.Atoi(os.Getenv("RANCHER_CLIENT_TIMEOUT"))
+	if defaultTimeout == 0 {
+		defaultTimeout = 30
+	}
+	return defaultTimeout
 }
